@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inzerát — SPARR Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="stylesheet" href="sparr.css">
+<style>
+.item-layout { max-width:1100px; margin:0 auto; padding:96px 64px 80px; display:grid; grid-template-columns:1fr 340px; gap:36px; }
+.item-main {}
+.item-img { width:100%; max-height:440px; object-fit:cover; border-radius:18px; margin-bottom:28px; border:1px solid var(--border); }
+.item-img-placeholder { width:100%; height:300px; border-radius:18px; margin-bottom:28px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:80px; color:rgba(255,255,255,.2); letter-spacing:4px; }
+.item-cat { margin-bottom:12px; }
+.item-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(36px,4.5vw,60px); line-height:.92; letter-spacing:2px; color:var(--text); margin-bottom:16px; }
+.item-meta-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:24px; font-size:14px; color:var(--muted); }
+.item-price { font-family:'Bebas Neue',sans-serif; font-size:52px; line-height:1; color:var(--orange); margin-bottom:28px; }
+.item-desc { font-size:16px; color:rgba(240,240,240,.8); line-height:1.8; font-weight:300; margin-bottom:28px; white-space:pre-line; }
+.item-tags { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:32px; }
+/* Sidebar */
+.item-sidebar {}
+.sid-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:16px; }
+.sid-h { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--orange); margin-bottom:16px; }
+.sid-author { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+.sid-author-name { font-weight:600; font-size:15px; color:var(--text); }
+.sid-author-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+.info-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:14px; }
+.info-row:last-child { border-bottom:none; }
+.info-row-label { color:var(--muted); }
+.info-row-val { font-weight:600; color:var(--text); }
+@media(max-width:960px) { .item-layout { grid-template-columns:1fr; padding:88px 20px 60px; } }
+</style>
+</head>
+<body>
+<div id="sPageLoader" class="s-page-loader"><div class="logo">SPARR</div><div class="s-loader"></div></div>
+<div class="s-cursor" id="sCursor"></div>
+<div class="s-cursor-ring" id="sCursorRing"></div>
+<div class="s-toast-wrap" id="toastWrap"></div>
+
+<nav class="s-nav">
+  <a class="s-logo" href="index.html">SPARR</a>
+  <div class="s-nav-links">
+    <a href="index.html">Home</a>
+    <a href="marketplace.html" class="active">Marketplace</a>
+    <a href="profiles.html">Fighters</a>
+  </div>
+  <div class="s-nav-right" id="navRight"></div>
+</nav>
+
+<div class="item-layout" id="itemLayout">
+  <!-- Skeleton -->
+  <div>
+    <div class="skeleton" style="height:300px;border-radius:18px;margin-bottom:28px"></div>
+    <div class="skeleton skeleton-line-lg" style="width:60%;height:24px;margin-bottom:16px"></div>
+    <div class="skeleton skeleton-line-md" style="margin-bottom:8px"></div>
+    <div class="skeleton skeleton-line-md" style="margin-bottom:8px"></div>
+    <div class="skeleton skeleton-line-sm"></div>
+  </div>
+  <div>
+    <div class="skeleton" style="height:340px;border-radius:16px"></div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="s-modal-overlay" id="contactModal" onclick="if(event.target===this)closeModal('contactModal')">
+  <div class="s-modal">
+    <div class="s-modal-head">
+      <div class="s-modal-title">Kontaktovat</div>
+      <button class="s-modal-close" onclick="closeModal('contactModal')">✕</button>
+    </div>
+    <div class="s-modal-body">
+      <div style="padding:14px;background:rgba(245,149,26,.07);border:1px solid rgba(245,149,26,.2);border-radius:10px;margin-bottom:20px;font-size:14px;color:var(--text)" id="cModalTitle">—</div>
+      <div class="form-group"><label class="form-label">Tvoje jméno *</label><input type="text" class="form-input" id="cName" placeholder="Jméno a příjmení"></div>
+      <div class="form-group"><label class="form-label">Tvůj email *</label><input type="email" class="form-input" id="cEmail" placeholder="tvuj@email.cz"></div>
+      <div class="form-group"><label class="form-label">Zpráva *</label><textarea class="form-input form-textarea" id="cMsg" style="min-height:120px" placeholder="Napiš co tě zajímá, jakou máš zkušenost, kdy máš čas…"></textarea></div>
+      <div id="cErr" class="form-error"></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="cSendBtn">Odeslat zprávu</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+window.addEventListener('load', function() {
+  if (window.emailjs) {
+    window.emailjs.init("HAijP0Nkt2ktswUcA");
+    console.log("EmailJS initialized");
+  }
+});
+import {
+  onAuthReady, sparrLogout,
+  getMarketplaceItem, contactSeller,
+  initials, timeAgo, esc
+} from './sparr.js';
+
+const cur=document.getElementById('sCursor'),ring=document.getElementById('sCursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.transform=`translate(${mx}px,${my}px)`;});
+(function a(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(a);})();
+
+window.showToast = function(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toastWrap');
+  if (!wrap) return;
+  var icons = {success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  var t = document.createElement('div');
+  t.className = 's-toast ' + type;
+  t.innerHTML = '<span style="font-size:15px;flex-shrink:0">' + (icons[type]||'ℹ️') + '</span>' +
+    '<span style="flex:1;font-size:14px">' + msg + '</span>' +
+    '<button style="background:none;border:none;color:rgba(240,240,240,.4);cursor:none;font-size:16px;padding:2px 4px;margin-left:4px;line-height:1" onclick="(function(el){el.classList.remove('show');setTimeout(function(){if(el.parentElement)el.remove();},420);})(this.parentElement)">✕</button>';
+  wrap.appendChild(t);
+  // Dvojitý rAF: zajistí render před animací
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add('show'); }); });
+  // Auto-hide po 5s
+  t._tid = setTimeout(function(){
+    t.classList.remove('show');
+    setTimeout(function(){ if(t.parentElement) t.remove(); }, 420);
+  }, 5000);
+};
+  const t=document.createElement('div');t.className=`s-toast ${type}`;
+  t.innerHTML=`<span class="s-toast-icon">${icons[type]}</span><span style="flex:1">${msg}</span><button class="s-toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  w.appendChild(t);requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},6000);
+};
+window.openModal=id=>{const m=document.getElementById(id);if(m){m.classList.add('open');document.body.style.overflow='hidden';}};
+window.closeModal=id=>{const m=document.getElementById(id);if(m){m.classList.remove('open');document.body.style.overflow='';}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.s-modal-overlay.open').forEach(m=>m.classList.remove('open'));});
+window.addEventListener('load',()=>{const pl=document.getElementById('sPageLoader');if(pl){pl.style.opacity='0';setTimeout(()=>pl.remove(),500);}});
+
+const DEMO_ITEMS = {
+  d1:{id:'d1',title:'Fitness Coach Jan',category:'coaches',authorName:'Jan Novák',authorEmail:'jan@example.cz',city:'Praha 5',desc:'Profesionální silová a kondiční příprava pro bojovníky.\n\n8 let zkušeností s přípravou amatérů i profesionálů. Specializace na:\n• Silová příprava specifická pro bojové sporty\n• Kondice a výbušnost\n• Prevence zranění\n• Regenerace\n\nKaždý program je individuálně přizpůsoben tvým cílům a časovým možnostem.',price:'500 Kč/hod',imageUrl:'',url:'',createdAt:Date.now()-86400000*5,views:47,contacts:8},
+  d2:{id:'d2',title:'Nutriční poradenství pro bojovníky',category:'coaches',authorName:'Marie Svobodová',authorEmail:'marie@example.cz',city:'Online / Praha',desc:'Plánování stravy a suplementace pro bojovníky.\n\nNabízím:\n• Individuální jídelníček\n• Plán suplementace\n• Váhové kategorie a cutting\n• Online konzultace',price:'400 Kč/konzultace',imageUrl:'',url:'',createdAt:Date.now()-86400000*3,views:31,contacts:4},
+  d5:{id:'d5',title:'SPARR Championship 2025',category:'events',authorName:'SPARR',authorEmail:'championship@sparr.cz',city:'Praha',desc:'Velký turnaj všech bojových sportů.\n\nKategorie:\n• Boxing - věkové kategorie junior/senior\n• MMA - amatérská a polo-pro\n• BJJ - gi/no-gi\n• Kickbox - K1 pravidla\n\nCeny pro první tři místa v každé kategorii. Profesionální rozhodčí a lékařský dohled.',price:'500 Kč/startovné',imageUrl:'',url:'',createdAt:Date.now()-86400000*2,views:124,contacts:22},
+};
+
+const params = new URLSearchParams(location.search);
+const itemId = params.get('id');
+let _item=null, _user=null, _profile=null;
+
+onAuthReady((user,profile)=>{
+  _user=user; _profile=profile;
+  const right=document.getElementById('navRight');
+  if(user){
+    right.innerHTML=`<a href="messages.html" class="btn btn-outline btn-sm">💬 Zprávy</a><a href="my-profile.html" class="nav-user-avatar">${profile?.photoURL?`<img src="${profile.photoURL}" alt="">`:initials(profile?.name||'?')}</a>`;
+    if(profile){document.getElementById('cName').value=profile.name||'';document.getElementById('cEmail').value=profile.email||'';}
+  } else {
+    right.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="location.href='index.html'">Log In</button>`;
+  }
+});
+
+async function loadItem() {
+  if (!itemId) { renderNotFound(); return; }
+  try {
+    _item = await getMarketplaceItem(itemId);
+    if (!_item && DEMO_ITEMS[itemId]) _item = DEMO_ITEMS[itemId];
+    if (!_item) { renderNotFound(); return; }
+    renderItem(_item);
+  } catch {
+    if (DEMO_ITEMS[itemId]) { _item=DEMO_ITEMS[itemId]; renderItem(_item); }
+    else renderNotFound();
+  }
+}
+
+function renderNotFound() {
+  document.getElementById('itemLayout').innerHTML = `
+    <div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-state-icon">🔍</div>
+      <div class="empty-state-title">Inzerát nenalezen</div>
+      <div class="empty-state-sub">Tento inzerát neexistuje nebo byl odstraněn.</div>
+      <a href="marketplace.html" class="btn btn-fire" style="margin-top:16px">← Zpět na Marketplace</a>
+    </div>`;
+}
+
+function renderItem(it) {
+  document.title = `${it.title} — SPARR Marketplace`;
+  const catLabels = {coaches:'Trenér / Kouč',camps:'Kemp / Program',sponsors:'Sponzor',events:'Event',other:'Ostatní'};
+  const catClass  = it.category || 'other';
+
+  const imgHtml = it.imageUrl
+    ? `<img class="item-img" src="${it.imageUrl}" alt="${escHtml(it.title)}">`
+    : `<div class="item-img-placeholder cat-${catClass} item-img-placeholder">${(it.title||'').slice(0,4).toUpperCase()}</div>`;
+
+  document.getElementById('itemLayout').innerHTML = `
+    <div class="item-main">
+      <div class="breadcrumb" style="margin-bottom:20px">
+        <a href="index.html">Home</a><span>/</span>
+        <a href="marketplace.html">Marketplace</a><span>/</span>
+        <span style="color:var(--text)">${escHtml(it.title)}</span>
+      </div>
+      ${imgHtml}
+      <div class="item-cat"><span class="cat-badge cat-${catClass}">${catLabels[catClass]||'Ostatní'}</span></div>
+      <h1 class="item-title">${escHtml(it.title)}</h1>
+      <div class="item-meta-row">
+        <span>👤 ${escHtml(it.authorName)}</span>
+        ${it.city?`<span>📍 ${escHtml(it.city)}</span>`:''}
+        <span>📅 ${timeAgo(it.createdAt)}</span>
+        ${it.views?`<span>👁 ${it.views} zobrazení</span>`:''}
+      </div>
+      <div class="item-price">${escHtml(it.price||'Kontaktujte')}</div>
+      <div class="item-desc">${escHtml(it.desc||'')}</div>
+      ${it.url?`<div style="margin-bottom:24px"><a href="${it.url}" target="_blank" rel="noopener" class="btn btn-ghost" style="cursor:pointer">🌐 Webová stránka / Instagram</a></div>`:''}
+      <a href="marketplace.html" class="btn btn-outline" style="margin-top:8px">← Zpět na Marketplace</a>
+    </div>
+    <div class="item-sidebar">
+      <div class="sid-card">
+        <div class="sid-h">Kontakt</div>
+        <div class="sid-author">
+          <div class="s-avatar s-avatar-md">${initials(it.authorName)}</div>
+          <div>
+            <div class="sid-author-name">${escHtml(it.authorName)}</div>
+            <div class="sid-author-sub">${escHtml(it.city||'—')}</div>
+          </div>
+        </div>
+        <button class="btn btn-fire btn-full" style="padding:13px;margin-bottom:10px" onclick="openContact()">📧 Kontaktovat</button>
+        ${it.authorEmail?`<div style="font-size:12px;color:var(--muted);text-align:center">${escHtml(it.authorEmail)}</div>`:''}
+      </div>
+      <div class="sid-card">
+        <div class="sid-h">Detaily</div>
+        <div class="info-row"><span class="info-row-label">Kategorie</span><span class="info-row-val">${catLabels[catClass]}</span></div>
+        <div class="info-row"><span class="info-row-label">Cena</span><span class="info-row-val" style="color:var(--orange)">${escHtml(it.price||'—')}</span></div>
+        ${it.city?`<div class="info-row"><span class="info-row-label">Místo</span><span class="info-row-val">${escHtml(it.city)}</span></div>`:''}
+        <div class="info-row"><span class="info-row-label">Přidáno</span><span class="info-row-val">${timeAgo(it.createdAt)}</span></div>
+        ${it.contacts?`<div class="info-row"><span class="info-row-label">Kontaktů</span><span class="info-row-val">${it.contacts}</span></div>`:''}
+      </div>
+      <div class="sid-card" style="background:rgba(245,149,26,.06);border-color:rgba(245,149,26,.2)">
+        <div style="font-size:13px;color:rgba(240,240,240,.8);line-height:1.6;">
+          💡 <strong style="color:var(--text)">Tip:</strong> Zmiň v e-mailu svoji zkušenost, sport a co přesně hledáš — výrazně to zvýší šance na odpověď.
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('cModalTitle').textContent = it.title;
+}
+
+window.openContact = () => { openModal('contactModal'); };
+
+document.getElementById('cSendBtn').addEventListener('click', async () => {
+  if (!_item) return;
+  const name = document.getElementById('cName').value.trim();
+  const email= document.getElementById('cEmail').value.trim();
+  const msg  = document.getElementById('cMsg').value.trim();
+  const err  = document.getElementById('cErr');
+  err.classList.remove('show');
+  if (!name||!email||!msg){ err.textContent='Vyplň všechna pole.'; err.classList.add('show'); return; }
+  const btn=document.getElementById('cSendBtn');
+  btn.disabled=true; btn.innerHTML='<span class="s-loader s-loader-sm"></span> Odesílám…';
+  try {
+    await contactMarketplaceSeller(_item, name, email, msg);
+    closeModal('contactModal');
+    document.getElementById('cMsg').value='';
+    showToast(`Zpráva odeslána pro ${_item.authorName}! Čekej na odpověď na ${email}. 📧`,'success');
+  } catch(e) { showToast('Odeslání selhalo. Zkontroluj připojení.','error'); }
+  btn.disabled=false; btn.textContent='Odeslat zprávu';
+});
+
+loadItem();
+</script>
+</body>
+</html>

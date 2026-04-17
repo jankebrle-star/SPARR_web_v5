@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil — SPARR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="stylesheet" href="sparr.css">
+<style>
+.profile-hero{position:relative;height:320px;overflow:hidden;}
+.profile-hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#f5951a 0%,#7a1010 55%,#0d0d0d 100%);}
+.profile-hero-sport{position:absolute;right:-20px;bottom:-30px;font-family:'Bebas Neue',sans-serif;font-size:24vw;color:rgba(255,255,255,.05);letter-spacing:-10px;line-height:1;user-select:none;pointer-events:none;}
+.profile-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,#0d0d0d 100%);}
+.hero-bc{position:absolute;top:86px;left:64px;z-index:2;}
+.hero-rank{position:absolute;top:98px;right:64px;z-index:2;text-align:right;}
+.hero-rank-n{font-family:'Bebas Neue',sans-serif;font-size:72px;line-height:1;color:rgba(255,255,255,.1);letter-spacing:4px;}
+.hero-rank-l{font-size:11px;color:rgba(255,255,255,.22);letter-spacing:3px;text-transform:uppercase;}
+.profile-wrap{max-width:1160px;margin:0 auto;padding:0 64px 80px;}
+.pid{display:flex;align-items:flex-end;gap:24px;margin-top:-52px;position:relative;z-index:2;margin-bottom:32px;flex-wrap:wrap;}
+.pav-outer{position:relative;flex-shrink:0;}
+.pav{width:106px;height:106px;border-radius:50%;background:var(--grad);border:4px solid #0d0d0d;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:34px;color:white;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.6);}
+.pav img{width:100%;height:100%;object-fit:cover;}
+.online-ring{position:absolute;inset:-4px;border-radius:50%;border:2.5px solid var(--success);}
+.pname{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,62px);letter-spacing:2px;line-height:.9;margin-bottom:10px;color:var(--text);}
+.pmeta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-size:13px;color:var(--muted);}
+.plevel{font-family:'Barlow Condensed',sans-serif;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pactions{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;padding-bottom:6px;}
+.ss{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--border);border-radius:14px;overflow:hidden;margin-bottom:28px;}
+.sc{background:var(--card);padding:20px 14px;text-align:center;}
+.scn{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.scl{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+.pl{display:grid;grid-template-columns:1fr 310px;gap:26px;}
+.psec{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px;margin-bottom:18px;}
+.psh{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.psh::before{content:'';width:14px;height:1.5px;background:var(--orange);flex-shrink:0;}
+.disc-row{display:flex;align-items:center;gap:13px;margin-bottom:14px;}
+.disc-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;background:var(--grad);}
+.disc-bar-wrap{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.disc-bar{height:100%;background:var(--grad);border-radius:3px;transition:width 1.4s ease;}
+.act-item{display:flex;gap:11px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--border);}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:9px;height:9px;border-radius:50%;background:var(--orange);margin-top:5px;flex-shrink:0;}
+.sid-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px;}
+.sid-h{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:14px;}
+.xp-bar-wrap{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin:8px 0;}
+.xp-bar{height:100%;background:var(--grad);border-radius:4px;transition:width 1.2s ease;}
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ach-item{background:rgba(255,255,255,.03);border-radius:10px;padding:11px 6px;text-align:center;border:1px solid var(--border);transition:border-color .2s;}
+.ach-item:hover{border-color:rgba(245,149,26,.3);}
+@media(max-width:960px){.pl{grid-template-columns:1fr;}.profile-wrap{padding:0 20px 60px;}.ss{grid-template-columns:repeat(3,1fr);}.hero-bc{left:20px;}.hero-rank{right:20px;}.pid{flex-direction:column;align-items:flex-start;}.pactions{margin-left:0;}}
+</style>
+</head>
+<body>
+<div id="sPageLoader" class="s-page-loader"><div class="logo">SPARR</div><div class="s-loader"></div></div>
+<div class="s-cursor" id="sCursor"></div>
+<div class="s-cursor-ring" id="sCursorRing"></div>
+<div class="s-toast-wrap" id="toastWrap"></div>
+
+<nav class="s-nav" id="mainNav">
+  <a class="s-logo" href="index.html">SPARR</a>
+  <div class="s-nav-links">
+    <a href="index.html">Home</a><a href="profiles.html">Fighters</a>
+    <a href="messages.html">Zprávy</a><a href="my-profile.html">Můj Profil</a>
+  </div>
+  <div class="s-nav-right" id="navRight"></div>
+</nav>
+
+<div class="profile-hero">
+  <div class="profile-hero-bg"></div>
+  <div class="profile-hero-sport" id="heroSport">FIGHTER</div>
+  <div class="profile-hero-overlay"></div>
+  <div class="hero-bc"><div class="breadcrumb"><a href="index.html">Home</a><span>/</span><a href="profiles.html">Fighters</a><span>/</span><span style="color:white" id="bcName">…</span></div></div>
+  <div class="hero-rank"><div class="hero-rank-n" id="heroRank">#—</div><div class="hero-rank-l">Czech Ranking</div></div>
+</div>
+
+<div class="profile-wrap">
+  <div class="pid">
+    <div class="pav-outer">
+      <div class="pav" id="pAv">?</div>
+      <div class="online-ring" id="onlineRing" style="display:none"></div>
+    </div>
+    <div style="flex:1;padding-bottom:6px">
+      <div class="pname" id="pName">Načítám…</div>
+      <div class="pmeta" id="pMeta"></div>
+      <div id="pTags" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px"></div>
+    </div>
+    <div class="pactions" id="pAct"><div class="s-loader"></div></div>
+  </div>
+
+  <div class="ss">
+    <div class="sc"><div class="scn" id="sPts">—</div><div class="scl">Body</div></div>
+    <div class="sc"><div class="scn" id="sSess">—</div><div class="scl">Sessions</div></div>
+    <div class="sc"><div class="scn" id="sWins">—</div><div class="scl">Výhry</div></div>
+    <div class="sc"><div class="scn" id="sFol">—</div><div class="scl">Followers</div></div>
+    <div class="sc"><div class="scn" id="sYrs">—</div><div class="scl">Roky</div></div>
+  </div>
+
+  <div class="pl">
+    <div>
+      <div class="psec">
+        <div class="psh">O bojovníkovi</div>
+        <p style="font-size:15px;color:rgba(240,240,240,.78);line-height:1.8;font-weight:300" id="pBio">Načítám…</p>
+      </div>
+      <div class="psec">
+        <div class="psh">Disciplíny</div>
+        <div id="pDisc"><div class="s-loader" style="margin:0 auto;display:block"></div></div>
+      </div>
+      <div class="psec">
+        <div class="psh">Aktivita</div>
+        <div id="pActivity"></div>
+      </div>
+    </div>
+    <div>
+      <div class="sid-card">
+        <div class="sid-h">Ranking</div>
+        <div style="text-align:center;padding:10px 0">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:76px;line-height:1;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="sideRank">—</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase">Overall Rank</div>
+        </div>
+        <div class="s-divider"></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text);margin-bottom:8px"><span>XP</span><span id="xpText" style="color:var(--muted)">—</span></div>
+        <div class="xp-bar-wrap"><div class="xp-bar" id="xpBar" style="width:0%"></div></div>
+        <div style="font-size:11px;color:var(--muted2)" id="xpLabel">—</div>
+      </div>
+      <div class="sid-card">
+        <div class="sid-h">Achievements</div>
+        <div class="ach-grid">
+          <div class="ach-item"><div style="font-size:22px;margin-bottom:5px">🥊</div><div style="font-size:10px;color:var(--muted);line-height:1.3">Verified Fighter</div></div>
+          <div class="ach-item"><div style="font-size:22px;margin-bottom:5px">📋</div><div style="font-size:10px;color:var(--muted);line-height:1.3">Wall Post</div></div>
+          <div class="ach-item"><div style="font-size:22px;margin-bottom:5px">👥</div><div style="font-size:10px;color:var(--muted);line-height:1.3">1st Follower</div></div>
+          <div class="ach-item"><div style="font-size:22px;margin-bottom:5px">🔥</div><div style="font-size:10px;color:var(--muted);line-height:1.3">30-Day Streak</div></div>
+          <div class="ach-item"><div style="font-size:22px;margin-bottom:5px">⭐</div><div style="font-size:10px;color:var(--muted);line-height:1.3">Top Rated</div></div>
+          <div class="ach-item"><div style="font-size:22px;margin-bottom:5px">🏆</div><div style="font-size:10px;color:var(--muted);line-height:1.3">Tournament Win</div></div>
+        </div>
+      </div>
+      <div class="sid-card" id="followersCard" style="display:none">
+        <div class="sid-h">Followers <span id="follCount" style="color:var(--text)">0</span></div>
+        <div id="follList" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="s-footer" style="padding:20px 64px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="s-footer-copy">© 2025 SPARR</div>
+    <a href="profiles.html" style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);text-decoration:none;cursor:none">← Všichni Fighters</a>
+  </div>
+</footer>
+
+<!-- SPARRING MODAL -->
+<div class="s-modal-overlay" id="sparModal" onclick="if(event.target===this)closeModal('sparModal')">
+  <div class="s-modal">
+    <div class="s-modal-head">
+      <div class="s-modal-title">Request Sparring</div>
+      <button class="s-modal-close" onclick="closeModal('sparModal')">✕</button>
+    </div>
+    <div class="s-modal-body">
+      <div style="padding:13px;background:rgba(245,149,26,.07);border:1px solid rgba(245,149,26,.2);border-radius:10px;margin-bottom:20px;font-size:14px;color:var(--text)">
+        ⚔ Žádost pro <strong id="sparName">—</strong>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Zpráva *</label>
+        <textarea class="form-input form-textarea" id="sparMsg" style="min-height:110px" placeholder="Představ se, navrhni čas a místo tréninku…"></textarea>
+      </div>
+      <div id="sparErr" class="form-error"></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="sparSendBtn">Odeslat žádost 🥊</button>
+      <div style="font-size:12px;color:var(--muted2);text-align:center;margin-top:10px">
+        Bojovník dostane email + notifikaci na SPARR
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+window.addEventListener('load', function() {
+  if (window.emailjs) {
+    window.emailjs.init("HAijP0Nkt2ktswUcA");
+    console.log("EmailJS initialized");
+  }
+});
+import {
+  onAuthReady, sparrLogout,
+  getProfile, toggleFollow, sendSparringRequest,
+  initials, timeAgo, esc
+} from './sparr.js';
+
+// cursor
+const cur=document.getElementById('sCursor'),ring=document.getElementById('sCursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.transform=`translate(${mx}px,${my}px)`;});
+(function a(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(a);})();
+
+window.showToast = function(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toastWrap');
+  if (!wrap) return;
+  var icons = {success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  var t = document.createElement('div');
+  t.className = 's-toast ' + type;
+  t.innerHTML = '<span style="font-size:15px;flex-shrink:0">' + (icons[type]||'ℹ️') + '</span>' +
+    '<span style="flex:1;font-size:14px">' + msg + '</span>' +
+    '<button style="background:none;border:none;color:rgba(240,240,240,.4);cursor:none;font-size:16px;padding:2px 4px;margin-left:4px;line-height:1" onclick="(function(el){el.classList.remove('show');setTimeout(function(){if(el.parentElement)el.remove();},420);})(this.parentElement)">✕</button>';
+  wrap.appendChild(t);
+  // Dvojitý rAF: zajistí render před animací
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add('show'); }); });
+  // Auto-hide po 5s
+  t._tid = setTimeout(function(){
+    t.classList.remove('show');
+    setTimeout(function(){ if(t.parentElement) t.remove(); }, 420);
+  }, 5000);
+};
+  const t=document.createElement('div');t.className=`s-toast ${type}`;
+  t.innerHTML=`<span class="s-toast-icon">${icons[type]}</span><span style="flex:1">${msg}</span><button class="s-toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  w.appendChild(t);requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},5500);
+};
+window.openModal=id=>{const m=document.getElementById(id);if(m){m.classList.add('open');document.body.style.overflow='hidden';}};
+window.closeModal=id=>{const m=document.getElementById(id);if(m){m.classList.remove('open');document.body.style.overflow='';}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.s-modal-overlay.open').forEach(m=>m.classList.remove('open'));});
+window.addEventListener('scroll',()=>document.getElementById('mainNav').classList.toggle('scrolled',scrollY>50));
+window.addEventListener('load',()=>{const pl=document.getElementById('sPageLoader');if(pl){pl.style.opacity='0';setTimeout(()=>pl.remove(),500);}});
+
+const params=new URLSearchParams(location.search),tUid=params.get('uid');
+let _tgt=null,_me=null,_mp=null;
+
+onAuthReady(async(user,profile)=>{
+  _me=user;_mp=profile;
+  const right=document.getElementById('navRight');
+  if(user){
+    const av=profile?.photoURL?`<img src="${profile.photoURL}" alt="">`:initials(profile?.name||'?');
+    right.innerHTML=`<a href="messages.html" class="btn btn-outline btn-sm">💬 Zprávy</a><a href="my-profile.html" class="nav-user-avatar">${av}</a><button class="btn btn-outline btn-sm" id="lob">Odhlásit</button>`;
+    document.getElementById('lob').addEventListener('click',()=>sparrLogout());
+  } else {
+    right.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="location.href='index.html'">Log In</button><button class="btn btn-fire btn-sm" onclick="location.href='index.html'">Join SPARR</button>`;
+  }
+  if(!tUid){renderErr('Chybí UID v URL.');return;}
+  try{
+    _tgt=await getProfile(tUid);
+    if(!_tgt){renderErr('Profil nenalezen.');return;}
+    renderProfile(_tgt);
+    renderActions(user);
+  }catch(e){renderErr('Chyba: '+e.message);}
+});
+
+function renderErr(msg){
+  document.getElementById('pName').textContent=msg;
+  document.getElementById('pAct').innerHTML=`<a href="profiles.html" class="btn btn-ghost">← Zpět</a>`;
+}
+
+function renderProfile(p){
+  document.title=`${p.name} — SPARR`;
+  document.getElementById('bcName').textContent=p.name;
+  document.getElementById('heroSport').textContent=(p.sport||'FIGHTER').toUpperCase();
+  document.getElementById('heroRank').textContent=p.rank?`#${p.rank}`:'#—';
+  document.getElementById('sideRank').textContent=p.rank?`#${p.rank}`:'—';
+  const av=document.getElementById('pAv');
+  if(p.photoURL){av.innerHTML=`<img src="${p.photoURL}" alt="">`;}else{av.textContent=initials(p.name);}
+  document.getElementById('onlineRing').style.display='block';
+  document.getElementById('pName').textContent=p.name;
+  document.getElementById('pMeta').innerHTML=`<span>📍 ${escHtml(p.city||'—')}</span><span class="plevel">${escHtml(p.level||'Fighter')}</span>${p.yearsActive?`<span>⏱ ${p.yearsActive} ${p.yearsActive===1?'rok':'let'}</span>`:''}`;
+  const tags=[p.sport,...(p.secondary||[]),p.openToSpar?'Open to Sparring':null,p.teachBeginners?'Teaches Beginners':null].filter(Boolean);
+  document.getElementById('pTags').innerHTML=tags.map(t=>`<span class="tag">${escHtml(t)}</span>`).join('')+'<span class="tag tag-green">✓ Verified</span>';
+  document.getElementById('sPts').textContent=(p.points||0).toLocaleString();
+  document.getElementById('sSess').textContent=p.sessions||0;
+  document.getElementById('sWins').textContent=p.wins||0;
+  document.getElementById('sFol').textContent=(p.followers||[]).length;
+  document.getElementById('sYrs').textContent=p.yearsActive||'—';
+  const pts=p.points||0,next=Math.max(Math.ceil((pts+1)/1000)*1000,1000),pct=Math.min(Math.round((pts%1000)/10),100);
+  document.getElementById('xpText').textContent=`${pts.toLocaleString()} / ${next.toLocaleString()}`;
+  document.getElementById('xpLabel').textContent=`${pct}% do dalšího levelu`;
+  setTimeout(()=>{document.getElementById('xpBar').style.width=`${pct}%`;},300);
+  document.getElementById('pBio').textContent=p.bio||'Tento bojovník zatím nepřidal bio.';
+  const yrs=p.yearsActive||1,discs=[[p.sport,yrs,'🥊'],...(p.secondary||[]).map((s,i)=>[s,Math.max(yrs-i-1,1),'🥋'])].filter(d=>d[0]);
+  document.getElementById('pDisc').innerHTML=discs.map(([name,y,ico])=>`
+    <div class="disc-row">
+      <div class="disc-icon">${ico}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px;color:var(--text)">${escHtml(name)}</div><div style="font-size:12px;color:var(--muted)">${y} ${y===1?'rok':'let'} · ${y>=4?'Pokročilý':y>=2?'Střední':'Začátečník'}</div></div>
+      <div class="disc-bar-wrap"><div class="disc-bar" style="width:0%" data-w="${Math.min(100,y*15)}%"></div></div>
+    </div>`).join('');
+  setTimeout(()=>document.querySelectorAll('.disc-bar').forEach(b=>{b.style.width=b.dataset.w;}),400);
+  document.getElementById('pActivity').innerHTML=`
+    <div class="act-item"><div class="act-dot" style="background:var(--success)"></div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">Přidal/a se na SPARR</div><div style="font-size:12px;color:var(--muted)">${p.sport||'—'} · ${timeAgo(p.createdAt||Date.now())}</div></div></div>
+    <div class="act-item"><div class="act-dot"></div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">Aktivní bojovník</div><div style="font-size:12px;color:var(--muted)">${p.sessions||0} sessions · ${(p.points||0).toLocaleString()} bodů</div></div></div>`;
+  const fols=p.followers||[];
+  if(fols.length>0){
+    document.getElementById('followersCard').style.display='block';
+    document.getElementById('follCount').textContent=fols.length;
+    document.getElementById('follList').innerHTML=fols.slice(0,8).map(()=>`<div class="s-avatar s-avatar-sm">?</div>`).join('');
+  }
+}
+
+function renderActions(user){
+  const row=document.getElementById('pAct');
+  if(!_tgt)return;
+  if(user&&user.uid===tUid){row.innerHTML=`<a href="my-profile.html" class="btn btn-fire">✏️ Upravit profil</a>`;return;}
+  const fol=user&&(_tgt.followers||[]).includes(user.uid);
+  row.innerHTML=`
+    <button class="btn btn-fire" onclick="openSparModal()">⚔ Request Sparring</button>
+    <a href="${user?`messages.html?uid=${tUid}&name=${encodeURIComponent(_tgt.name)}`:'index.html'}" class="btn btn-ghost">💬 Zpráva</a>
+    <button class="btn ${fol?'btn-outline':'btn-ghost'}" id="followBtn" onclick="doFollow()">${fol?'✓ Sleduji':'+ Sledovat'}</button>`;
+}
+
+window.doFollow=async()=>{
+  if(!_me){location.href='index.html';return;}
+  const btn=document.getElementById('followBtn'),orig=btn.textContent;
+  btn.disabled=true;btn.innerHTML='<span class="s-loader s-loader-sm"></span>';
+  try{
+    const f=await toggleFollow(_me.uid,_mp?.name,tUid,_tgt.email||'',_tgt.name);
+    btn.textContent=f?'✓ Sleduji':'+ Sledovat';
+    btn.className=`btn ${f?'btn-outline':'btn-ghost'}`;
+    showToast(f?`Sleduji ${_tgt.name}! 👥`:`Přestal/a sleduji ${_tgt.name}`,f?'success':'info');
+    _tgt=await getProfile(tUid);
+    document.getElementById('sFol').textContent=(_tgt.followers||[]).length;
+    document.getElementById('follCount').textContent=(_tgt.followers||[]).length;
+    if((_tgt.followers||[]).length>0)document.getElementById('followersCard').style.display='block';
+  }catch(e){btn.textContent=orig;showToast('Chyba: '+e.message,'error');}
+  btn.disabled=false;
+};
+
+window.openSparModal=()=>{
+  if(!_me){location.href='index.html';return;}
+  document.getElementById('sparName').textContent=_tgt.name;
+  document.getElementById('sparMsg').value=`Ahoj ${_tgt.name}! Rád/a bych si s tebou zastřílel/a. Jsem ${_mp?.level||'fighter'} z ${_mp?.city||'ČR'}${_mp?.yearsActive?', '+_mp.yearsActive+' let zkušeností':''}.`;
+  openModal('sparModal');
+};
+
+document.getElementById('sparSendBtn').addEventListener('click',async()=>{
+  const msg=document.getElementById('sparMsg').value.trim(),err=document.getElementById('sparErr'),btn=document.getElementById('sparSendBtn');
+  err.classList.remove('show');
+  if(!msg){err.textContent='Napiš zprávu.';err.classList.add('show');return;}
+  btn.disabled=true;btn.innerHTML='<span class="s-loader s-loader-sm"></span> Odesílám…';
+  try{
+    await sendSparringRequest(_me.uid,_mp?.name,tUid,_tgt.email||'',_tgt.name,msg);
+    closeModal('sparModal');
+    showToast(`Sparring žádost odeslána ${_tgt.name}! Dostane email i notifikaci. 🥊`,'success');
+  }catch(e){showToast('Odeslání selhalo: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='Odeslat žádost 🥊';
+});
+</script>
+</body>
+</html>

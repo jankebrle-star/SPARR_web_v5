@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fighters — SPARR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="stylesheet" href="sparr.css">
+<style>
+/* PAGE HEADER */
+.page-header{padding:140px 80px 64px;position:relative;overflow:hidden;background:#0d0d0d;}
+.page-header::after{content:'FIGHTERS';position:absolute;right:-40px;top:50%;transform:translateY(-50%);font-family:'Bebas Neue',sans-serif;font-size:22vw;color:rgba(245,149,26,.03);letter-spacing:-10px;pointer-events:none;white-space:nowrap;}
+
+/* SEARCH */
+.search-wrap{padding:0 80px 32px;background:#0d0d0d;}
+.search-bar{display:flex;gap:10px;align-items:center;background:#181818;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:6px 6px 6px 18px;margin-bottom:20px;transition:border-color .3s;}
+.search-bar:focus-within{border-color:rgba(245,149,26,.4);}
+.search-bar input{flex:1;background:transparent;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:15px;color:#f0f0f0;cursor:none;}
+.search-bar input::placeholder{color:rgba(240,240,240,.35);}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.filter-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(240,240,240,.45);margin-right:4px;}
+.filter-chip{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 18px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(240,240,240,.45);cursor:none;transition:all .3s;}
+.filter-chip:hover,.filter-chip.active{border-color:#f5951a;color:#f5951a;background:rgba(245,149,26,.08);}
+.sort-select{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:#181818;color:rgba(240,240,240,.45);cursor:none;outline:none;margin-left:auto;}
+
+/* GRID */
+.fighters-wrap{padding:0 80px 120px;background:#0d0d0d;}
+.fighters-count{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(240,240,240,.45);margin-bottom:20px;}
+
+.fighters-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
+
+/* FIGHTER CARD */
+.fighter-card{background:#181818;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;transition:all .4s cubic-bezier(.4,0,.2,1);cursor:none;}
+.fighter-card:hover{border-color:rgba(245,149,26,.35);transform:translateY(-8px);box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 50px rgba(245,149,26,.07);}
+.fc-banner{height:120px;position:relative;overflow:hidden;}
+.fc-banner.boxing{background:linear-gradient(135deg,#f5951a,#9b6010);}
+.fc-banner.mma{background:linear-gradient(135deg,#ab2e2e,#5a1515);}
+.fc-banner.bjj{background:linear-gradient(135deg,#1a4fa0,#0d2850);}
+.fc-banner.kickbox{background:linear-gradient(135deg,#ab2e2e,#f5951a);}
+.fc-banner.wrestling{background:linear-gradient(135deg,#2d6a1a,#1a3a0d);}
+.fc-banner.muay{background:linear-gradient(135deg,#8b5a2b,#5a3010);}
+.fc-banner::after{content:attr(data-sport);position:absolute;right:-8px;bottom:-10px;font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,.12);letter-spacing:4px;}
+.fc-rank{position:absolute;top:10px;left:12px;background:linear-gradient(135deg,#f5951a,#ab2e2e);color:white;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;padding:2px 10px;border-radius:4px;}
+.fc-online{position:absolute;top:10px;right:12px;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600;color:white;}
+.fc-av{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#f5951a,#ab2e2e);border:3px solid #181818;position:absolute;bottom:-30px;left:18px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:white;box-shadow:0 6px 20px rgba(0,0,0,.4);overflow:hidden;}
+.fc-av img{width:100%;height:100%;object-fit:cover;}
+.fc-body{padding:40px 18px 18px;}
+.fc-name{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:#f0f0f0;margin-bottom:3px;}
+.fc-meta{font-size:12px;color:rgba(240,240,240,.45);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.fc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.fc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;}
+.fcs{background:rgba(255,255,255,.04);border-radius:8px;padding:8px 6px;text-align:center;}
+.fcs-n{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#f5951a;}
+.fcs-l{font-size:9px;color:rgba(240,240,240,.45);letter-spacing:1px;text-transform:uppercase;}
+.fc-footer{display:flex;gap:8px;}
+.fc-btn{flex:1;padding:8px;border:1px solid rgba(255,255,255,.08);background:transparent;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f5951a;cursor:none;transition:all .3s;text-decoration:none;display:flex;align-items:center;justify-content:center;}
+.fc-btn:hover{background:#f5951a;color:white;border-color:#f5951a;}
+.fc-btn.fire{background:linear-gradient(135deg,#f5951a,#ab2e2e);color:white;border:none;}
+
+/* LOAD MORE */
+.load-more{text-align:center;margin-top:48px;}
+
+/* DEMO BADGE */
+.demo-notice{background:rgba(245,149,26,.08);border:1px solid rgba(245,149,26,.2);border-radius:12px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(240,240,240,.7);}
+.demo-notice strong{color:#f5951a;}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+  .page-header,.search-wrap,.fighters-wrap{padding-left:24px;padding-right:24px;}
+}
+@media(max-width:640px){
+  .fighters-grid{grid-template-columns:1fr;}
+  .page-header{padding-top:110px;padding-bottom:40px;}
+}
+</style>
+</head>
+<body>
+<div id="sPageLoader" class="s-page-loader"><div class="logo">SPARR</div><div class="s-loader"></div></div>
+<div class="s-cursor" id="sCursor"></div>
+<div class="s-cursor-ring" id="sCursorRing"></div>
+<div class="s-toast-wrap" id="toastWrap"></div>
+
+<nav class="s-nav" id="mainNav">
+  <a class="s-logo" href="index.html">SPARR</a>
+  <div class="s-nav-links">
+    <a href="index.html">Home</a>
+    <a href="index.html#wall">Wall</a>
+    <a href="index.html#leaderboard">Leaderboard</a>
+    <a href="profiles.html" class="active">Fighters</a>
+    <a href="index.html#marketplace">Marketplace</a>
+  </div>
+  <div class="s-nav-right" id="navRight">
+    <button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">Log In</button>
+    <button class="btn btn-fire btn-sm" onclick="openModal('registerModal')">Join SPARR</button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="s-label reveal">Community</div>
+  <h1 class="s-title reveal" style="font-size:clamp(56px,7vw,96px)">Czech<br>Fighters</h1>
+  <p class="s-sub reveal">Prohlédni si profily bojovníků, najdi sparring partnera nebo trenéra.</p>
+</div>
+
+<!-- SEARCH & FILTERS -->
+<div class="search-wrap">
+  <div class="search-bar">
+    <span style="color:rgba(240,240,240,.35);font-size:18px">🔍</span>
+    <input type="text" id="searchInput" placeholder="Hledat bojovníka podle jména, města nebo sportu…" oninput="applyFilters()">
+    <button class="btn btn-fire btn-sm" onclick="applyFilters()">Hledat</button>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Sport:</span>
+    <button class="filter-chip active" onclick="setSport('all',this)">Všechny</button>
+    <button class="filter-chip" onclick="setSport('Boxing',this)">Boxing</button>
+    <button class="filter-chip" onclick="setSport('MMA',this)">MMA</button>
+    <button class="filter-chip" onclick="setSport('BJJ',this)">BJJ</button>
+    <button class="filter-chip" onclick="setSport('Kickbox',this)">Kickbox</button>
+    <button class="filter-chip" onclick="setSport('Wrestling',this)">Wrestling</button>
+    <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+      <option value="points">Řadit: Nejvíce bodů</option>
+      <option value="sessions">Nejvíce sessions</option>
+      <option value="name">Jméno A–Z</option>
+    </select>
+  </div>
+</div>
+
+<!-- FIGHTERS GRID -->
+<div class="fighters-wrap">
+  <div class="fighters-count reveal" id="fightersCount">Načítám…</div>
+  <div id="demoNotice" style="display:none" class="demo-notice">
+    🏋️ <span>Zobrazuji <strong>ukázkové profily</strong> — zaregistruj se a budeš první skutečný fighter na SPARR!</span>
+  </div>
+  <div class="fighters-grid" id="fightersGrid">
+    <div style="grid-column:1/-1;text-align:center;padding:60px;color:rgba(240,240,240,.45)">
+      <div class="s-loader" style="margin:0 auto 16px"></div>
+      Načítám profily…
+    </div>
+  </div>
+  <div class="load-more reveal">
+    <button class="btn btn-ghost" style="padding:14px 48px" id="loadMoreBtn" onclick="loadMore()" style="display:none">
+      Načíst další bojovníky
+    </button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="s-footer">
+  <div class="s-footer-grid">
+    <div><a href="index.html" class="s-footer-logo">SPARR</a><p class="s-footer-tagline">Czech combat sports network. Connect, train, compete.</p></div>
+    <div><div class="s-footer-col-h">Platform</div><ul class="s-footer-links"><li><a href="index.html#features">Features</a></li><li><a href="index.html#wall">Wall Feed</a></li><li><a href="index.html#leaderboard">Leaderboard</a></li></ul></div>
+    <div><div class="s-footer-col-h">Fighters</div><ul class="s-footer-links"><li><a href="profiles.html">Browse All</a></li><li><a href="profiles.html">Boxing</a></li><li><a href="profiles.html">MMA</a></li><li><a href="profiles.html">BJJ</a></li></ul></div>
+    <div><div class="s-footer-col-h">Company</div><ul class="s-footer-links"><li><a href="#">About</a></li><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+  </div>
+  <div class="s-footer-bottom"><div class="s-footer-copy">© 2025 SPARR · All rights reserved</div></div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div class="s-modal-overlay" id="loginModal" onclick="if(event.target===this)closeModal('loginModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Log In</div><button class="s-modal-close" onclick="closeModal('loginModal')">✕</button></div>
+    <div class="s-modal-body">
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="fighter@sparr.cz"></div>
+      <div class="form-group"><label class="form-label">Heslo</label><input type="password" class="form-input" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div id="loginErr" class="form-error"></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="loginBtn" onclick="doLogin()">Log In</button>
+      <div class="s-modal-switch">Nemáš účet? <a onclick="switchModal('loginModal','registerModal')">Zaregistruj se zdarma</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="s-modal-overlay" id="registerModal" onclick="if(event.target===this)closeModal('registerModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Join SPARR</div><button class="s-modal-close" onclick="closeModal('registerModal')">✕</button></div>
+    <div class="s-modal-body">
+      <div class="form-group"><label class="form-label">Jméno a příjmení</label><input type="text" class="form-input" id="regName" placeholder="Tvoje jméno"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="regEmail" placeholder="fighter@sparr.cz"></div>
+      <div class="form-group"><label class="form-label">Město</label><input type="text" class="form-input" id="regCity" placeholder="Praha, Brno…"></div>
+      <div class="form-group"><label class="form-label">Hlavní sport</label>
+        <select class="form-input form-select" id="regSport"><option>Boxing</option><option>MMA</option><option>BJJ</option><option>Kickbox</option><option>Wrestling</option><option>Muay Thai</option></select></div>
+      <div class="form-group"><label class="form-label">Úroveň</label>
+        <select class="form-input form-select" id="regLevel"><option>Beginner</option><option>Intermediate</option><option>Advanced</option><option>Pro</option></select></div>
+      <div class="form-group"><label class="form-label">Heslo</label><input type="password" class="form-input" id="regPass" placeholder="Min. 6 znaků"></div>
+      <div id="regErr" class="form-error"></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="regBtn" onclick="doRegister()">Vytvořit profil</button>
+      <div class="s-modal-switch">Už máš účet? <a onclick="switchModal('registerModal','loginModal')">Přihlásit se</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- SPARRING MODAL -->
+<div class="s-modal-overlay" id="sparringModal" onclick="if(event.target===this)closeModal('sparringModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Request Sparring</div><button class="s-modal-close" onclick="closeModal('sparringModal')">✕</button></div>
+    <div class="s-modal-body">
+      <p style="font-size:14px;color:rgba(240,240,240,.45);margin-bottom:18px">Odesílám žádost pro <strong id="sparName" style="color:#f0f0f0">—</strong></p>
+      <div class="form-group"><label class="form-label">Zpráva</label><textarea class="form-input form-textarea" id="sparMsg" placeholder="Představ se a navrhni čas…"></textarea></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="sparBtn" onclick="doSendSpar()">Odeslat žádost</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+window.addEventListener('load', function() {
+  if (window.emailjs) {
+    window.emailjs.init("HAijP0Nkt2ktswUcA");
+    console.log("EmailJS initialized");
+  }
+});
+import {
+  onAuthReady, sparrLogin, sparrRegister,
+  getAllFighters, sendSparringRequest,
+  initials, timeAgo, esc
+} from './sparr.js';
+
+// ── CURSOR ────────────────────────────────────────────────
+const cur = document.getElementById('sCursor'), ring = document.getElementById('sCursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cur.style.transform=`translate(${mx}px,${my}px)`; });
+(function a(){ rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.transform=`translate(${rx}px,${ry}px)`; requestAnimationFrame(a); })();
+
+// ── TOAST ─────────────────────────────────────────────────
+window.showToast = function(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toastWrap');
+  if (!wrap) return;
+  var icons = {success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  var t = document.createElement('div');
+  t.className = 's-toast ' + type;
+  t.innerHTML = '<span style="font-size:15px;flex-shrink:0">' + (icons[type]||'ℹ️') + '</span>' +
+    '<span style="flex:1;font-size:14px">' + msg + '</span>' +
+    '<button style="background:none;border:none;color:rgba(240,240,240,.4);cursor:none;font-size:16px;padding:2px 4px;margin-left:4px;line-height:1" onclick="(function(el){el.classList.remove('show');setTimeout(function(){if(el.parentElement)el.remove();},420);})(this.parentElement)">✕</button>';
+  wrap.appendChild(t);
+  // Dvojitý rAF: zajistí render před animací
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add('show'); }); });
+  // Auto-hide po 5s
+  t._tid = setTimeout(function(){
+    t.classList.remove('show');
+    setTimeout(function(){ if(t.parentElement) t.remove(); }, 420);
+  }, 5000);
+};
+  const t = document.createElement('div');
+  t.className = `s-toast ${type}`;
+  t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  w.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 450); }, 4500);
+};
+
+// ── MODALS ────────────────────────────────────────────────
+window.openModal  = id => { const m=document.getElementById(id); if(m){m.classList.add('open');document.body.style.overflow='hidden';} };
+window.closeModal = id => { const m=document.getElementById(id); if(m){m.classList.remove('open');document.body.style.overflow='';} };
+window.switchModal = (a, b) => { closeModal(a); setTimeout(() => openModal(b), 300); };
+document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.s-modal-overlay.open').forEach(m=>m.classList.remove('open')); });
+
+// ── NAV SCROLL ────────────────────────────────────────────
+window.addEventListener('scroll', () =>
+  document.getElementById('mainNav').classList.toggle('scrolled', scrollY > 50));
+
+// ── REVEAL ────────────────────────────────────────────────
+const rObs = new IntersectionObserver(
+  entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold:.08, rootMargin:'0px 0px -40px 0px' }
+);
+document.querySelectorAll('.reveal').forEach(el => rObs.observe(el));
+
+// ── PAGE LOADER ───────────────────────────────────────────
+window.addEventListener('load', () => {
+  const pl = document.getElementById('sPageLoader');
+  if(pl){ pl.style.opacity='0'; setTimeout(() => pl.remove(), 500); }
+});
+
+// ── AUTH ──────────────────────────────────────────────────
+let _user = null, _profile = null, _sparTarget = null;
+onAuthReady((user, profile) => {
+  _user = user; _profile = profile;
+  const right = document.getElementById('navRight');
+  if(user) {
+    const av = profile?.photoURL
+      ? `<img src="${profile.photoURL}" alt="">`
+      : initials(profile?.name || '?');
+    right.innerHTML = `
+      <a href="messages.html" class="btn btn-outline btn-sm">💬 Zprávy</a>
+      <a href="my-profile.html" class="nav-user-avatar" title="${profile?.name||''}">${av}</a>
+      <button class="btn btn-outline btn-sm" id="logoutBtn">Odhlásit</button>`;
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      import('./sparr.js').then(m => m.sparrLogout());
+    });
+  } else {
+    right.innerHTML = `
+      <button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">Log In</button>
+      <button class="btn btn-fire btn-sm" onclick="openModal('registerModal')">Join SPARR</button>`;
+  }
+});
+
+// ── LOGIN ─────────────────────────────────────────────────
+window.doLogin = async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  err.classList.remove('show');
+  if(!email || !pass) { err.textContent='Vyplň všechna pole.'; err.classList.add('show'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="s-loader" style="width:16px;height:16px"></span>';
+  try {
+    await sparrLogin(email, pass);
+    closeModal('loginModal');
+    showToast('Vítej zpět! 🥊', 'success');
+    setTimeout(() => location.reload(), 800);
+  } catch(e) {
+    const codes = {'auth/wrong-password':'Špatné heslo.','auth/user-not-found':'Účet neexistuje.','auth/invalid-credential':'Špatný email nebo heslo.'};
+    err.textContent = codes[e.code] || 'Přihlášení selhalo.';
+    err.classList.add('show');
+  }
+  btn.disabled = false; btn.textContent = 'Log In';
+};
+
+// ── REGISTER ──────────────────────────────────────────────
+window.doRegister = async () => {
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const city  = document.getElementById('regCity').value.trim();
+  const sport = document.getElementById('regSport').value;
+  const level = document.getElementById('regLevel').value;
+  const pass  = document.getElementById('regPass').value;
+  const err   = document.getElementById('regErr');
+  const btn   = document.getElementById('regBtn');
+  err.classList.remove('show');
+  if(!name||!email||!city||!pass) { err.textContent='Vyplň všechna pole.'; err.classList.add('show'); return; }
+  if(pass.length < 6) { err.textContent='Heslo musí mít min. 6 znaků.'; err.classList.add('show'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="s-loader" style="width:16px;height:16px"></span> Vytvářím…';
+  try {
+    await sparrRegister(email, pass, { name, city, sport, level });
+    closeModal('registerModal');
+    showToast(`Vítej, ${name}! Zkontroluj email. 🥊`, 'success');
+    setTimeout(() => window.location.href = 'my-profile.html', 1800);
+  } catch(e) {
+    const codes = {'auth/email-already-in-use':'Tento email je již zaregistrován.','auth/weak-password':'Heslo je příliš slabé.'};
+    err.textContent = codes[e.code] || 'Registrace selhala.';
+    err.classList.add('show');
+  }
+  btn.disabled = false; btn.textContent = 'Vytvořit profil';
+};
+
+// ── DEMO DATA ─────────────────────────────────────────────
+// Zobrazí se pouze pokud Firebase nevrátí žádné reálné profily
+const DEMO_FIGHTERS = [
+  { uid:'d1', name:'Milan Janda',      city:'Praha 5',  sport:'Boxing',    level:'Pro',          rank:1,  points:2850, sessions:47, wins:31, followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d2', name:'Petr Kovár',       city:'Brno',     sport:'MMA',       level:'Advanced',     rank:2,  points:2620, sessions:43, wins:28, followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d3', name:'Anna Vavříková',   city:'Ostrava',  sport:'Kickbox',   level:'Advanced',     rank:3,  points:2480, sessions:41, wins:25, followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d4', name:'Roman Novotný',    city:'Plzeň',    sport:'BJJ',       level:'Intermediate', rank:4,  points:2340, sessions:39, wins:22, followers:[], following:[], openToSpar:false, photoURL:'' },
+  { uid:'d5', name:'David Majer',      city:'Liberec',  sport:'Boxing',    level:'Intermediate', rank:5,  points:2210, sessions:37, wins:20, followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d6', name:'Tomáš Musil',      city:'Praha 3',  sport:'Wrestling', level:'Beginner',     rank:6,  points:1950, sessions:33, wins:17, followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d7', name:'Karel Novák',      city:'Plzeň',    sport:'Boxing',    level:'Beginner',     rank:7,  points:1820, sessions:31, wins:15, followers:[], following:[], openToSpar:false, photoURL:'' },
+  { uid:'d8', name:'Zdeněk Přibáň',   city:'Brno',     sport:'MMA',       level:'Intermediate', rank:8,  points:1640, sessions:28, wins:13, followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d9', name:'Lucie Horáčková', city:'Praha 2',  sport:'BJJ',       level:'Intermediate', rank:9,  points:1520, sessions:24, wins:11, followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d10',name:'Ondřej Blažek',   city:'Olomouc',  sport:'MMA',       level:'Beginner',     rank:10, points:1380, sessions:21, wins:9,  followers:[], following:[], openToSpar:true,  photoURL:'' },
+  { uid:'d11',name:'Jana Koláčková',  city:'Brno',     sport:'Kickbox',   level:'Intermediate', rank:11, points:1240, sessions:18, wins:8,  followers:[], following:[], openToSpar:false, photoURL:'' },
+  { uid:'d12',name:'Radek Šimánek',   city:'Hradec Králové', sport:'Boxing', level:'Beginner',  rank:12, points:1100, sessions:16, wins:6,  followers:[], following:[], openToSpar:true,  photoURL:'' },
+];
+
+// ── FIGHTER CARD ──────────────────────────────────────────
+function sportClass(sport) {
+  const map = {'Boxing':'boxing','MMA':'mma','BJJ':'bjj','Kickbox':'kickbox','Wrestling':'wrestling','Muay Thai':'muay'};
+  return map[sport] || 'boxing';
+}
+function statusDot(f) {
+  // Demo fighters: náhodný status; reálné profily: online pokud přihlášeni
+  const statuses = ['online','online','away','offline'];
+  const s = f._isDemo ? statuses[Math.floor(f.uid.slice(-1) % 4)] : 'offline';
+  const label = s==='online'?'Online':s==='away'?'Away':'Offline';
+  return `<div class="fc-online"><span class="status-dot ${s}"></span>${label}</div>`;
+}
+
+function renderCard(f, isDemo) {
+  f._isDemo = isDemo;
+  const link = isDemo ? '#' : `profile.html?uid=${f.uid}`;
+  const clickProfile = isDemo
+    ? `onclick="openModal('registerModal');showToast('Zaregistruj se pro zobrazení profilu!','info')"`
+    : `onclick="location.href='${link}'"`;
+  const clickMsg = isDemo
+    ? `onclick="openModal('registerModal');showToast('Zaregistruj se pro psaní zpráv!','info')"`
+    : `onclick="location.href='messages.html?uid=${f.uid}&name=${encodeURIComponent(f.name)}'"`;
+  const clickSpar = isDemo
+    ? `onclick="openModal('registerModal');showToast('Zaregistruj se pro sparring requesty!','info')"`
+    : `onclick="openSparModal('${f.uid}','${f.name}','${f.email||''}')"`; 
+
+  return `
+  <div class="fighter-card reveal">
+    <div class="fc-banner ${sportClass(f.sport)}" data-sport="${f.sport.toUpperCase()}">
+      <div class="fc-rank">#${f.rank || '—'}</div>
+      ${statusDot(f)}
+      <div class="fc-av">${f.photoURL ? `<img src="${f.photoURL}" alt="">` : initials(f.name)}</div>
+    </div>
+    <div class="fc-body">
+      <div class="fc-name">${f.name}</div>
+      <div class="fc-meta">📍 ${f.city || '—'} &nbsp;·&nbsp; ${f.level || '—'}</div>
+      <div class="fc-tags">
+        <span class="tag">${f.sport}</span>
+        ${f.openToSpar ? '<span class="tag tag-green">Open to Sparring</span>' : ''}
+      </div>
+      <div class="fc-stats">
+        <div class="fcs"><div class="fcs-n">${(f.points||0).toLocaleString()}</div><div class="fcs-l">Body</div></div>
+        <div class="fcs"><div class="fcs-n">${f.sessions||0}</div><div class="fcs-l">Sessions</div></div>
+        <div class="fcs"><div class="fcs-n">${f.wins||0}</div><div class="fcs-l">Výhry</div></div>
+      </div>
+      <div class="fc-footer">
+        <a class="fc-btn fire" ${clickProfile}>Profil</a>
+        <button class="fc-btn" ${clickMsg}>Zpráva</button>
+        <button class="fc-btn" ${clickSpar}>⚔ Spar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── STATE ─────────────────────────────────────────────────
+let allFighters = [];
+let sportFilter = 'all';
+let isDemo = false;
+let displayCount = 12;
+
+async function loadFighters() {
+  const grid = document.getElementById('fightersGrid');
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:rgba(240,240,240,.45)"><div class="s-loader" style="margin:0 auto 16px"></div>Načítám profily…</div>`;
+
+  try {
+    const real = await getAllFighters({ limit: 50 });
+    if (real && real.length > 0) {
+      // Máme reálné uživatele
+      allFighters = real.map((f, i) => ({ ...f, rank: i + 1 }));
+      isDemo = false;
+      document.getElementById('demoNotice').style.display = 'none';
+    } else {
+      // Žádní reálí uživatelé — použij demo data
+      allFighters = DEMO_FIGHTERS;
+      isDemo = true;
+      document.getElementById('demoNotice').style.display = 'flex';
+    }
+  } catch(e) {
+    console.warn('Firebase error, using demo:', e);
+    allFighters = DEMO_FIGHTERS;
+    isDemo = true;
+    document.getElementById('demoNotice').style.display = 'flex';
+  }
+
+  applyFilters();
+}
+
+window.applyFilters = function() {
+  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+
+  let filtered = allFighters.filter(f => {
+    const matchSport = sportFilter === 'all' || f.sport === sportFilter;
+    const matchQ = !q || f.name?.toLowerCase().includes(q) || f.city?.toLowerCase().includes(q) || f.sport?.toLowerCase().includes(q);
+    return matchSport && matchQ;
+  });
+
+  // Sort
+  if (sort === 'sessions') filtered.sort((a,b) => (b.sessions||0)-(a.sessions||0));
+  else if (sort === 'name')  filtered.sort((a,b) => (a.name||'').localeCompare(b.name||'','cs'));
+  else                       filtered.sort((a,b) => (b.points||0)-(a.points||0));
+
+  renderFighters(filtered);
+};
+
+window.setSport = function(sport, btn) {
+  sportFilter = sport;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  displayCount = 12;
+  applyFilters();
+};
+
+function renderFighters(data) {
+  const grid = document.getElementById('fightersGrid');
+  const count = document.getElementById('fightersCount');
+  const lmBtn = document.getElementById('loadMoreBtn');
+
+  count.textContent = `${data.length} ${data.length === 1 ? 'bojovník' : data.length < 5 ? 'bojovníci' : 'bojovníků'}${isDemo ? ' (ukázkové profily)' : ''}`;
+
+  if (!data.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:rgba(240,240,240,.45)">Žádní bojovníci nenalezeni.<br><br><button class="btn btn-ghost" onclick="document.getElementById('searchInput').value='';applyFilters()">Zrušit filtr</button></div>`;
+    lmBtn.style.display = 'none';
+    return;
+  }
+
+  const visible = data.slice(0, displayCount);
+  grid.innerHTML = visible.map(f => renderCard(f, isDemo)).join('');
+
+  // Observe new cards for reveal animation
+  grid.querySelectorAll('.fighter-card.reveal').forEach(el => rObs.observe(el));
+
+  // Load more button
+  if (data.length > displayCount) {
+    lmBtn.style.display = 'inline-flex';
+    lmBtn.textContent = `Načíst další (${data.length - displayCount})`;
+    window._filteredFighters = data;
+  } else {
+    lmBtn.style.display = 'none';
+  }
+}
+
+window.loadMore = function() {
+  displayCount += 12;
+  if (window._filteredFighters) {
+    renderFighters(window._filteredFighters);
+  }
+};
+
+// ── SPARRING ──────────────────────────────────────────────
+window.openSparModal = function(uid, name, email) {
+  if(!_user) { openModal('loginModal'); showToast('Nejdřív se přihlas.','info'); return; }
+  _sparTarget = { uid, name, email };
+  document.getElementById('sparName').textContent = name;
+  document.getElementById('sparMsg').value = `Ahoj ${name}! Rád/a bych si s tebou zastřílel/a. Jsem ${_profile?.level||'fighter'} z ${_profile?.city||'ČR'}.`;
+  openModal('sparringModal');
+};
+
+window.doSendSpar = async function() {
+  if(!_sparTarget || !_user) return;
+  const msg = document.getElementById('sparMsg').value.trim();
+  const btn = document.getElementById('sparBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="s-loader" style="width:16px;height:16px"></span>';
+  try {
+    await sendSparringRequest(_user.uid, _profile?.name, _sparTarget.uid, _sparTarget.email, _sparTarget.name, msg);
+    closeModal('sparringModal');
+    showToast(`Žádost odeslána pro ${_sparTarget.name}! 🥊`, 'success');
+  } catch { showToast('Odeslání selhalo.', 'error'); }
+  btn.disabled = false; btn.textContent = 'Odeslat žádost';
+};
+
+// ── INIT ──────────────────────────────────────────────────
+loadFighters();
+</script>
+</body>
+</html>

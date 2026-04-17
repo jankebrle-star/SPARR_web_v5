@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Můj Profil — SPARR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="stylesheet" href="sparr.css">
+<style>
+.page-wrap { display:grid; grid-template-columns:270px 1fr; gap:24px; max-width:1240px; margin:0 auto; padding:92px 40px 80px; }
+.sidebar-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px; margin-bottom:16px; }
+.sh { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--orange); margin-bottom:14px; }
+.av-wrap { position:relative; display:inline-block; }
+.av-main { width:88px; height:88px; border-radius:50%; background:var(--grad); border:3px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:26px; color:white; overflow:hidden; margin:0 auto 12px; }
+.av-main img { width:100%; height:100%; object-fit:cover; }
+.av-edit-btn { position:absolute; bottom:8px; right:0; width:30px; height:30px; border-radius:50%; background:var(--grad); border:2px solid var(--dark); cursor:none; display:flex; align-items:center; justify-content:center; font-size:14px; transition:transform .2s; }
+.av-edit-btn:hover { transform:scale(1.1); }
+.nav-list { list-style:none; }
+.nav-list li { margin-bottom:3px; }
+.nav-list a { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:var(--muted); font-size:14px; cursor:none; transition:all .2s; text-decoration:none; min-height:44px; }
+.nav-list a:hover, .nav-list a.active { background:rgba(245,149,26,.08); color:var(--text); }
+.nav-list a .nl-badge { margin-left:auto; background:var(--orange); color:white; border-radius:10px; padding:1px 8px; font-size:11px; font-weight:700; }
+/* TAB PANELS */
+.tab-panel { display:none; } .tab-panel.active { display:block; }
+.sec { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:26px; margin-bottom:20px; }
+.sec-h { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--orange); margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.sec-h::before { content:''; width:14px; height:1.5px; background:var(--orange); flex-shrink:0; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+/* Sparring request cards */
+.spar-card { background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:12px; transition:border-color .2s; }
+.spar-card:hover { border-color:rgba(245,149,26,.2); }
+.spar-card-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.spar-card-name { font-weight:600; font-size:15px; color:var(--text); }
+.spar-card-msg { font-size:14px; color:rgba(240,240,240,.75); line-height:1.6; margin-bottom:12px; padding:12px; background:rgba(255,255,255,.03); border-radius:8px; border-left:2px solid var(--orange); }
+.spar-card-meta { font-size:12px; color:var(--muted); margin-bottom:14px; }
+.spar-card-actions { display:flex; gap:8px; flex-wrap:wrap; }
+/* Post item */
+.post-item { display:flex; justify-content:space-between; align-items:center; padding:14px; background:rgba(255,255,255,.03); border-radius:10px; border:1px solid var(--border); margin-bottom:10px; gap:12px; transition:border-color .2s; }
+.post-item:hover { border-color:rgba(245,149,26,.2); }
+.post-item-info { flex:1; min-width:0; }
+.post-item-title { font-weight:600; font-size:14px; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.post-item-meta { font-size:12px; color:var(--muted); }
+.post-item-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+/* Follow cards */
+.follow-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+.follow-card { background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; transition:all .25s; }
+.follow-card:hover { border-color:rgba(245,149,26,.3); transform:translateY(-3px); }
+/* Notification items */
+.notif-row { display:flex; gap:12px; align-items:flex-start; padding:14px; background:rgba(255,255,255,.03); border-radius:10px; border:1px solid var(--border); margin-bottom:8px; }
+.notif-row.unread { border-color:rgba(245,149,26,.2); background:rgba(245,149,26,.04); }
+@media(max-width:960px) { .page-wrap { grid-template-columns:1fr; padding:88px 16px 60px; } .form-row { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div id="sPageLoader" class="s-page-loader"><div class="logo">SPARR</div><div class="s-loader"></div></div>
+<div class="s-cursor" id="sCursor"></div>
+<div class="s-cursor-ring" id="sCursorRing"></div>
+<div class="s-toast-wrap" id="toastWrap"></div>
+
+<nav class="s-nav">
+  <a class="s-logo" href="index.html">SPARR</a>
+  <div class="s-nav-links">
+    <a href="index.html">Home</a><a href="profiles.html">Fighters</a>
+    <a href="messages.html">Zprávy</a><a href="my-profile.html" class="active">Profil</a>
+  </div>
+  <div class="s-nav-right" id="navRight"></div>
+</nav>
+
+<div class="page-wrap">
+  <!-- SIDEBAR -->
+  <div>
+    <div class="sidebar-card" style="text-align:center;padding:26px 18px 20px">
+      <div class="av-wrap">
+        <div class="av-main" id="sAv">?</div>
+        <button class="av-edit-btn" onclick="document.getElementById('photoInput').click()" title="Změnit profilovou fotku">📷</button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none">
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--text)" id="sName">—</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px" id="sLoc">—</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:7px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="sLvl">—</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px">
+        <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:9px 4px;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange)" id="sPts">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Body</div></div>
+        <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:9px 4px;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange)" id="sSess">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Sessions</div></div>
+        <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:9px 4px;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange)" id="sFol">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Followers</div></div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sh">Navigace</div>
+      <ul class="nav-list">
+        <li><a class="active" onclick="showTab('edit',this)">✏️ Upravit profil</a></li>
+        <li><a onclick="showTab('requests',this)" id="navRequests">🥊 Sparring žádosti <span class="nl-badge" id="reqBadge" style="display:none">0</span></a></li>
+        <li><a onclick="showTab('posts',this)">📋 Moje posty</a></li>
+        <li><a onclick="showTab('saved',this)">🔖 Uložené posty</a></li>
+        <li><a onclick="showTab('following',this)">👥 Sleduji</a></li>
+        <li><a onclick="showTab('notifs',this)" id="navNotifs">🔔 Notifikace <span class="nl-badge" id="notifBadge" style="display:none">0</span></a></li>
+        <li><a href="messages.html">💬 Zprávy</a></li>
+        <li><a id="logoutBtn" style="color:var(--error)">🚪 Odhlásit</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div>
+
+    <!-- EDIT PROFILE -->
+    <div class="tab-panel active" id="tab-edit">
+      <div class="sec">
+        <div class="sec-h">Základní informace</div>
+        <div class="form-group"><label class="form-label">Celé jméno *</label><input type="text" class="form-input" id="eName" placeholder="Tvoje jméno"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Město *</label><input type="text" class="form-input" id="eCity" placeholder="Praha, Brno…"></div>
+          <div class="form-group"><label class="form-label">Hlavní sport *</label>
+            <select class="form-input form-select" id="eSport">
+              <option>Boxing</option><option>MMA</option><option>BJJ</option><option>Kickbox</option><option>Wrestling</option><option>Muay Thai</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Úroveň *</label>
+            <select class="form-input form-select" id="eLevel">
+              <option>Beginner</option><option>Intermediate</option><option>Advanced</option><option>Pro</option><option>Champion</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Roky zkušeností *</label>
+            <input type="number" class="form-input" id="eYears" placeholder="např. 3" min="0" max="50">
+            <div class="form-hint">Jak dlouho se věnuješ bojovým sportům</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Váhová kategorie (kg)</label><input type="text" class="form-input" id="eWeight" placeholder="70 kg"></div>
+          <div class="form-group"><label class="form-label">Instagram</label><input type="text" class="form-input" id="eInsta" placeholder="@tvujhandle"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Bio</label><textarea class="form-input form-textarea" id="eBio" style="min-height:100px" placeholder="Napiš o sobě pro ostatní bojovníky…" maxlength="500" oninput="document.getElementById('bioCount').textContent=this.value.length+'/500'"></textarea><div class="form-char-count" id="bioCount">0/500</div></div>
+        <div class="form-group"><label class="form-label">Vedlejší sporty (oddělené čárkami)</label><input type="text" class="form-input" id="eSecondary" placeholder="Kickbox, Wrestling"></div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:none;font-size:14px;color:var(--text)"><input type="checkbox" id="eOpenSpar" style="accent-color:var(--orange);width:16px;height:16px;cursor:none">Otevřen/a sparringu</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:none;font-size:14px;color:var(--text)"><input type="checkbox" id="eTeach" style="accent-color:var(--orange);width:16px;height:16px;cursor:none">Učím začátečníky</label>
+        </div>
+        <div id="saveErr" class="form-error"></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-fire" id="saveBtn">Uložit profil</button>
+          <a id="viewPubLink" href="#" class="btn btn-ghost">Zobrazit veřejný profil</a>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-h">Změna hesla</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nové heslo</label><input type="password" class="form-input" id="newPass" placeholder="Min. 6 znaků"></div>
+          <div class="form-group"><label class="form-label">Potvrdit heslo</label><input type="password" class="form-input" id="confPass" placeholder="Opakuj heslo"></div>
+        </div>
+        <div id="passErr" class="form-error"></div>
+        <button class="btn btn-ghost" id="chPassBtn">Aktualizovat heslo</button>
+      </div>
+    </div>
+
+    <!-- SPARRING REQUESTS -->
+    <div class="tab-panel" id="tab-requests">
+      <div class="sec">
+        <div class="sec-h">Příchozí sparring žádosti</div>
+        <div id="reqList"><div style="text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div></div>
+      </div>
+    </div>
+
+    <!-- MY POSTS -->
+    <div class="tab-panel" id="tab-posts">
+      <div class="sec">
+        <div class="sec-h">
+          Moje posty
+          <button class="btn btn-fire btn-sm" onclick="openModal('newPostModal')">+ Nový post</button>
+        </div>
+        <div id="myPostsList"><div style="text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div></div>
+      </div>
+    </div>
+
+    <!-- SAVED POSTS -->
+    <div class="tab-panel" id="tab-saved">
+      <div class="sec">
+        <div class="sec-h">Uložené posty</div>
+        <div id="savedPostsList"><div style="text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div></div>
+      </div>
+    </div>
+
+    <!-- FOLLOWING -->
+    <div class="tab-panel" id="tab-following">
+      <div class="sec">
+        <div class="sec-h">Sleduji</div>
+        <div class="follow-grid" id="followingList"><div style="grid-column:1/-1;text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div></div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="tab-panel" id="tab-notifs">
+      <div class="sec">
+        <div class="sec-h">
+          Notifikace
+          <button class="btn btn-outline btn-sm" id="markAllReadBtn">Označit vše jako přečtené</button>
+        </div>
+        <div id="notifsList"><div style="text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- NEW POST MODAL -->
+<div class="s-modal-overlay" id="newPostModal" onclick="if(event.target===this)closeModal('newPostModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Nový Post</div><button class="s-modal-close" onclick="closeModal('newPostModal')">✕</button></div>
+    <div class="s-modal-body">
+      <div class="form-group"><label class="form-label">Nadpis *</label><input type="text" class="form-input" id="mTitle" placeholder="Co hledáš?"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Sport</label><select class="form-input form-select" id="mSport"><option value="boxing">Boxing</option><option value="mma">MMA</option><option value="bjj">BJJ</option><option value="kickbox">Kickbox</option><option value="wrestling">Wrestling</option></select></div>
+        <div class="form-group"><label class="form-label">Typ</label><select class="form-input form-select" id="mType"><option>Sparring</option><option>Trénink</option><option>Začátečník</option><option>Koučink</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Popis *</label><textarea class="form-input form-textarea" id="mDesc" placeholder="Popiš co hledáš, kdy a kde…" maxlength="400"></textarea></div>
+      <div id="postModalErr" class="form-error"></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="mPostBtn">Publikovat</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+window.addEventListener('load', function() {
+  if (window.emailjs) {
+    window.emailjs.init("HAijP0Nkt2ktswUcA");
+    console.log("EmailJS initialized");
+  }
+});
+import {
+  onAuthReady, sparrLogout, sparrChPass,
+  getProfile, saveProfile, uploadProfilePhoto,
+  getSparringRequests, updateSparringStatus,
+  createPost, getWallPosts, deletePost, savePost, getSavedPosts,
+  toggleFollow, listenNotifications, markNotifsRead,
+  initials, timeAgo, esc
+} from './sparr.js';
+
+// ── CURSOR & UI INIT ──────────────────────────────────────
+const cur=document.getElementById('sCursor'), ring=document.getElementById('sCursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.transform=`translate(${mx}px,${my}px)`;});
+(function a(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(a);})();
+
+window.showToast = function(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toastWrap');
+  if (!wrap) return;
+  var icons = {success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  var t = document.createElement('div');
+  t.className = 's-toast ' + type;
+  t.innerHTML = '<span style="font-size:15px;flex-shrink:0">' + (icons[type]||'ℹ️') + '</span>' +
+    '<span style="flex:1;font-size:14px">' + msg + '</span>' +
+    '<button style="background:none;border:none;color:rgba(240,240,240,.4);cursor:none;font-size:16px;padding:2px 4px;margin-left:4px;line-height:1" onclick="(function(el){el.classList.remove('show');setTimeout(function(){if(el.parentElement)el.remove();},420);})(this.parentElement)">✕</button>';
+  wrap.appendChild(t);
+  // Dvojitý rAF: zajistí render před animací
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add('show'); }); });
+  // Auto-hide po 5s
+  t._tid = setTimeout(function(){
+    t.classList.remove('show');
+    setTimeout(function(){ if(t.parentElement) t.remove(); }, 420);
+  }, 5000);
+};
+  const t=document.createElement('div');t.className=`s-toast ${type}`;
+  t.innerHTML=`<span class="s-toast-icon">${icons[type]}</span><span style="flex:1">${msg}</span><button class="s-toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  w.appendChild(t);requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},5000);
+};
+window.openModal=id=>{const m=document.getElementById(id);if(m){m.classList.add('open');document.body.style.overflow='hidden';}};
+window.closeModal=id=>{const m=document.getElementById(id);if(m){m.classList.remove('open');document.body.style.overflow='';}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.s-modal-overlay.open').forEach(m=>m.classList.remove('open'));});
+window.addEventListener('load',()=>{const pl=document.getElementById('sPageLoader');if(pl){pl.style.opacity='0';setTimeout(()=>pl.remove(),500);}});
+
+let _u=null, _p=null, _notifUnsub=null;
+
+onAuthReady(async (user, profile) => {
+  if (!user) { window.location.href='index.html'; return; }
+  _u=user; _p=profile;
+  fillSidebar(profile);
+  fillEditForm(profile);
+  updateNav(profile);
+  // Listen for real-time notifications
+  _notifUnsub = listenNotifications(_u.uid, notifs => {
+    const unread = notifs.filter(n => !n.read).length;
+    const badge  = document.getElementById('notifBadge');
+    if (unread > 0) { badge.textContent=unread; badge.style.display='inline'; }
+    else { badge.style.display='none'; }
+    // Also update requests badge
+    getSparringRequests(_u.uid).then(reqs => {
+      const pend = reqs.filter(r=>r.status==='pending').length;
+      const rb   = document.getElementById('reqBadge');
+      if (pend>0){rb.textContent=pend;rb.style.display='inline';}else{rb.style.display='none';}
+    }).catch(()=>{});
+  });
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => sparrLogout());
+
+function updateNav(p) {
+  const right=document.getElementById('navRight');
+  right.innerHTML=`<a href="messages.html" class="btn btn-outline btn-sm">💬 Zprávy</a><button class="btn btn-outline btn-sm" id="lnb">Odhlásit</button>`;
+  document.getElementById('lnb').addEventListener('click',()=>sparrLogout());
+}
+
+// ── SIDEBAR FILL ──────────────────────────────────────────
+function fillSidebar(p){
+  if(!p)return;
+  const av=document.getElementById('sAv');
+  av.innerHTML = p.photoURL ? `<img src="${p.photoURL}" alt="">` : initials(p.name);
+  document.getElementById('sName').textContent = p.name||'—';
+  document.getElementById('sLoc').textContent  = `📍 ${p.city||'—'} · ${p.sport||'—'}`;
+  document.getElementById('sLvl').textContent  = p.level||'Beginner';
+  document.getElementById('sPts').textContent  = (p.points||0).toLocaleString();
+  document.getElementById('sSess').textContent = p.sessions||0;
+  document.getElementById('sFol').textContent  = (p.followers||[]).length;
+  document.getElementById('viewPubLink').href  = `profile.html?uid=${p.uid}`;
+}
+
+// ── EDIT FORM FILL ────────────────────────────────────────
+function fillEditForm(p){
+  if(!p)return;
+  document.getElementById('eName').value      = p.name||'';
+  document.getElementById('eCity').value      = p.city||'';
+  document.getElementById('eBio').value       = p.bio||'';
+  document.getElementById('eWeight').value    = p.weight||'';
+  document.getElementById('eInsta').value     = p.instagram||'';
+  document.getElementById('eSecondary').value = (p.secondary||[]).join(', ');
+  document.getElementById('eYears').value     = p.yearsActive||'';
+  document.getElementById('bioCount').textContent = (p.bio||'').length + '/500';
+  document.getElementById('eOpenSpar').checked = p.openToSpar!==false;
+  document.getElementById('eTeach').checked   = p.teachBeginners||false;
+  setSelect('eSport', p.sport);
+  setSelect('eLevel', p.level);
+}
+function setSelect(id, val) {
+  const s=document.getElementById(id); if(!s||!val)return;
+  [...s.options].forEach(o=>{ if(o.value===val||o.textContent===val) s.value=o.value; });
+}
+
+// ── SAVE PROFILE ──────────────────────────────────────────
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const name  = document.getElementById('eName').value.trim();
+  const city  = document.getElementById('eCity').value.trim();
+  const years = document.getElementById('eYears').value;
+  const err   = document.getElementById('saveErr');
+  const btn   = document.getElementById('saveBtn');
+  err.classList.remove('show');
+
+  if (!name||!city) { err.textContent='Jméno a město jsou povinné.'; err.classList.add('show'); return; }
+  if (years && (isNaN(years)||years<0||years>60)) { err.textContent='Roky zkušeností musí být číslo 0–60.'; err.classList.add('show'); return; }
+
+  btn.disabled=true; btn.innerHTML='<span class="s-loader s-loader-sm"></span> Ukládám…';
+  const data={
+    name, city,
+    sport:    document.getElementById('eSport').value,
+    level:    document.getElementById('eLevel').value,
+    yearsActive: parseInt(years)||0,
+    bio:      document.getElementById('eBio').value.trim(),
+    weight:   document.getElementById('eWeight').value.trim(),
+    instagram:document.getElementById('eInsta').value.trim(),
+    secondary:document.getElementById('eSecondary').value.split(',').map(s=>s.trim()).filter(Boolean),
+    openToSpar:     document.getElementById('eOpenSpar').checked,
+    teachBeginners: document.getElementById('eTeach').checked,
+    updatedAt: Date.now()
+  };
+  try {
+    await saveProfile(_u.uid, data);
+    _p={..._p,...data};
+    fillSidebar(_p);
+    showToast('Profil úspěšně uložen!','success');
+  } catch(e) { showToast('Ukládání selhalo: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='Uložit profil';
+});
+
+// ── CHANGE PASSWORD ───────────────────────────────────────
+document.getElementById('chPassBtn').addEventListener('click', async () => {
+  const np=document.getElementById('newPass').value;
+  const cp=document.getElementById('confPass').value;
+  const err=document.getElementById('passErr');
+  err.classList.remove('show');
+  if (!np||np!==cp){ err.textContent='Hesla se neshodují.'; err.classList.add('show'); return; }
+  if (np.length<6){ err.textContent='Heslo musí mít min. 6 znaků.'; err.classList.add('show'); return; }
+  try {
+    await sparrChPass(_u, np);
+    showToast('Heslo aktualizováno!','success');
+    document.getElementById('newPass').value='';
+    document.getElementById('confPass').value='';
+  } catch(e) {
+    showToast(e.code==='auth/requires-recent-login'?'Odhlásit se a přihlásit znovu, poté zkusit.':'Chyba změny hesla.','error');
+  }
+});
+
+// ── PHOTO UPLOAD ──────────────────────────────────────────
+document.getElementById('photoInput').addEventListener('change', async e => {
+  const file=e.target.files[0]; if(!file)return;
+  if (file.size>5*1024*1024){showToast('Maximální velikost fotky je 5MB.','warning');return;}
+  const btn = document.querySelector('.av-edit-btn');
+  btn.innerHTML = '<div class="s-loader s-loader-sm"></div>';
+  try {
+    const url=await uploadProfilePhoto(_u.uid,file);
+    document.getElementById('sAv').innerHTML=`<img src="${url}" alt="">`;
+    _p.photoURL=url;
+    showToast('Profilová fotka aktualizována!','success');
+  } catch(e) {
+    showToast('Nahrání selhalo. Zkontroluj Firebase Storage rules.','error');
+  }
+  btn.innerHTML='📷';
+});
+
+// ── TABS ──────────────────────────────────────────────────
+window.showTab = (name, el) => {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-list a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name==='requests')  loadRequests();
+  if (name==='posts')     loadMyPosts();
+  if (name==='saved')     loadSavedPosts();
+  if (name==='following') loadFollowing();
+  if (name==='notifs')    loadNotifications();
+};
+
+// ── SPARRING REQUESTS ─────────────────────────────────────
+async function loadRequests() {
+  if (!_u) return;
+  const list = document.getElementById('reqList');
+  list.innerHTML = `<div style="text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám žádosti…</div>`;
+  try {
+    const reqs = await getSparringRequests(_u.uid);
+    if (!reqs.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🥊</div><div class="empty-state-title">Žádné žádosti</div><div class="empty-state-sub">Zatím nemáš žádné sparring žádosti.</div></div>`;
+      return;
+    }
+    const pending = reqs.filter(r=>r.status==='pending').length;
+    const badge = document.getElementById('reqBadge');
+    if (pending>0){badge.textContent=pending;badge.style.display='inline';}else{badge.style.display='none';}
+
+    list.innerHTML = reqs.map(r => `
+      <div class="spar-card">
+        <div class="spar-card-head">
+          <div class="s-avatar s-avatar-md">${initials(r.fromName)}</div>
+          <div style="flex:1">
+            <div class="spar-card-name">${escHtml(r.fromName)}</div>
+            <div class="spar-card-meta">📅 ${timeAgo(r.createdAt)} · Status: <span class="tag ${r.status==='pending'?'':'tag-gray'}" style="font-size:10px">${r.status==='pending'?'Čekající':r.status==='accepted'?'Přijato':'Odmítnuto'}</span></div>
+          </div>
+        </div>
+        <div class="spar-card-msg">"${escHtml(r.message)}"</div>
+        ${r.status==='pending' ? `
+        <div class="spar-card-actions">
+          <button class="btn btn-success btn-sm" onclick="acceptReq('${r.id}','${escHtml(r.fromName)}','${r.fromUid}')">✓ Přijmout</button>
+          <button class="btn btn-danger btn-sm" onclick="declineReq('${r.id}')">✕ Odmítnout</button>
+          <a href="messages.html?uid=${r.fromUid}&name=${encodeURIComponent(r.fromName)}" class="btn btn-ghost btn-sm">💬 Napsat</a>
+          <a href="profile.html?uid=${r.fromUid}" class="btn btn-outline btn-sm">👤 Profil</a>
+        </div>` : `<div style="font-size:12px;color:var(--muted);margin-top:8px">
+          <a href="messages.html?uid=${r.fromUid}&name=${encodeURIComponent(r.fromName)}" class="btn btn-ghost btn-sm">💬 Pokračovat v konverzaci</a>
+        </div>`}
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Chyba načítání</div><div class="empty-state-sub">${e.message}</div></div>`;
+  }
+}
+
+window.acceptReq = async (id, fromName, fromUid) => {
+  try {
+    await updateSparringStatus(id, 'accepted');
+    showToast(`Sparring s ${fromName} potvrzen! 🥊`, 'success');
+    loadRequests();
+    // Suggest opening a message
+    setTimeout(() => showToast(`Navrhuj čas tréninku přes Zprávy →`, 'info'), 1500);
+  } catch { showToast('Chyba přijímání žádosti.','error'); }
+};
+window.declineReq = async id => {
+  if (!confirm('Opravdu odmítnout tuto žádost?')) return;
+  try { await updateSparringStatus(id,'declined'); showToast('Žádost odmítnuta.','info'); loadRequests(); }
+  catch { showToast('Chyba.','error'); }
+};
+
+// ── MY POSTS ──────────────────────────────────────────────
+document.getElementById('mPostBtn').addEventListener('click', async () => {
+  const title = document.getElementById('mTitle').value.trim();
+  const desc  = document.getElementById('mDesc').value.trim();
+  const err   = document.getElementById('postModalErr');
+  err.classList.remove('show');
+  if (!title||!desc){ err.textContent='Vyplň nadpis a popis.'; err.classList.add('show'); return; }
+  const btn=document.getElementById('mPostBtn');
+  btn.disabled=true; btn.innerHTML='<span class="s-loader s-loader-sm"></span> Publikuji…';
+  try {
+    await createPost(_u.uid, _p?.name||'Fighter', {
+      title, sport:document.getElementById('mSport').value,
+      type:document.getElementById('mType').value, text:desc,
+      city:_p?.city||'', level:`LVL ${Math.ceil((_p?.points||0)/500)+1}`
+    });
+    closeModal('newPostModal');
+    showToast('Post publikován!','success');
+    document.getElementById('mTitle').value='';
+    document.getElementById('mDesc').value='';
+    loadMyPosts();
+  } catch(e){ showToast('Publikování selhalo.','error'); }
+  btn.disabled=false; btn.textContent='Publikovat';
+});
+
+async function loadMyPosts() {
+  if (!_u) return;
+  const list=document.getElementById('myPostsList');
+  list.innerHTML=`<div style="text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div>`;
+  try {
+    const all=await getWallPosts(), mine=all.filter(p=>p.uid===_u.uid);
+    if (!mine.length){
+      list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Žádné posty</div><div class="empty-state-sub">Zatím jsi nic nepublikoval/a.</div><button class="btn btn-fire btn-sm" onclick="openModal('newPostModal')" style="margin-top:12px">+ Nový post</button></div>`;
+      return;
+    }
+    list.innerHTML=mine.map(p=>`
+      <div class="post-item">
+        <div class="post-item-info">
+          <div class="post-item-title">${escHtml(p.title)}</div>
+          <div class="post-item-meta">${p.sport} · ${p.type} · 💬 ${p.replies||0} · 🔖 ${p.saves||0} · ${timeAgo(p.createdAt)}</div>
+        </div>
+        <div class="post-item-actions">
+          <button class="btn btn-danger btn-sm" onclick="delPost('${p.id}')">Smazat</button>
+        </div>
+      </div>`).join('');
+  } catch { list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Chyba načítání</div></div>`; }
+}
+window.delPost=async id=>{
+  if (!confirm('Smazat tento post?')) return;
+  try{ await deletePost(id); showToast('Post smazán.','info'); loadMyPosts(); }
+  catch{ showToast('Mazání selhalo.','error'); }
+};
+
+// ── SAVED POSTS ───────────────────────────────────────────
+async function loadSavedPosts() {
+  if (!_u) return;
+  const list=document.getElementById('savedPostsList');
+  list.innerHTML=`<div style="text-align:center;padding:40px"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div>`;
+  try {
+    const posts=await getSavedPosts(_u.uid);
+    if (!posts.length){
+      list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🔖</div><div class="empty-state-title">Žádné uložené posty</div><div class="empty-state-sub">Ukládej posty z Wallu kliknutím na Save.</div></div>`;
+      return;
+    }
+    list.innerHTML=posts.map(p=>`
+      <div class="post-item">
+        <div class="post-item-info">
+          <div class="post-item-title">${escHtml(p.title)}</div>
+          <div class="post-item-meta">${escHtml(p.authorName)} · ${p.sport} · ${timeAgo(p.createdAt)}</div>
+        </div>
+        <div class="post-item-actions">
+          <a href="profile.html?uid=${p.uid}" class="btn btn-ghost btn-sm">Profil</a>
+          <button class="btn btn-outline btn-sm" onclick="unsavePost('${p.id}')">Odebrat</button>
+        </div>
+      </div>`).join('');
+  } catch { list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Chyba načítání</div></div>`; }
+}
+window.unsavePost=async id=>{
+  await savePost(_u.uid, id); // toggles — removes if already saved
+  showToast('Post odebrán z uložených.','info');
+  loadSavedPosts();
+};
+
+// ── FOLLOWING ─────────────────────────────────────────────
+async function loadFollowing() {
+  if (!_u||!_p) return;
+  const list=document.getElementById('followingList');
+  const ids=_p.following||[];
+  if (!ids.length){
+    list.innerHTML=`<div style="grid-column:1/-1" class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">Nesleduješ nikoho</div><div class="empty-state-sub"><a href="profiles.html" style="color:var(--orange);cursor:none">Prohlédni profily →</a></div></div>`;
+    return;
+  }
+  list.innerHTML=ids.map(()=>`<div class="skeleton skeleton-card" style="height:200px"></div>`).join('');
+  try {
+    const ps=await Promise.all(ids.map(uid=>getProfile(uid)));
+    list.innerHTML=ps.filter(Boolean).map(p=>`
+      <div class="follow-card">
+        <div class="s-avatar s-avatar-lg" style="margin:0 auto">${p.photoURL?`<img src="${p.photoURL}" alt="">`:initials(p.name)}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin:10px 0 3px">${escHtml(p.name)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px">${p.sport} · ${p.city}</div>
+        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+          <a href="profile.html?uid=${p.uid}" class="btn btn-ghost btn-sm">Profil</a>
+          <a href="messages.html?uid=${p.uid}&name=${encodeURIComponent(p.name)}" class="btn btn-outline btn-sm">Napsat</a>
+        </div>
+      </div>`).join('');
+  } catch { list.innerHTML=`<div style="grid-column:1/-1" class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Chyba načítání</div></div>`; }
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────
+async function loadNotifications() {
+  if (!_u) return;
+  const list=document.getElementById('notifsList');
+  try {
+    const p=await getProfile(_u.uid);
+    const notifs=(p?.notifications||[]).sort((a,b)=>b.ts-a.ts);
+    if (!notifs.length){
+      list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🔔</div><div class="empty-state-title">Žádné notifikace</div></div>`;
+      return;
+    }
+    list.innerHTML=notifs.slice(0,30).map(n=>{
+      const icons={follow:'👥',sparring:'🥊',message:'💬',contact:'📧'};
+      return `<div class="notif-row ${n.read?'':'unread'}">
+        <span style="font-size:18px;flex-shrink:0">${icons[n.type]||'🔔'}</span>
+        <div style="flex:1">
+          <div style="font-size:14px;color:var(--text)">${escHtml(n.text)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">${timeAgo(n.ts)}</div>
+        </div>
+        ${n.link?`<a href="${n.link}" class="btn btn-ghost btn-sm">Zobrazit</a>`:''}
+      </div>`;
+    }).join('');
+  } catch(e){ list.innerHTML=`<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Chyba: ${e.message}</div></div>`; }
+}
+
+document.getElementById('markAllReadBtn').addEventListener('click', async () => {
+  try {
+    await markNotifsRead(_u.uid);
+    showToast('Všechny notifikace označeny jako přečtené.','success');
+    loadNotifications();
+  } catch { showToast('Chyba.','error'); }
+});
+</script>
+</body>
+</html>

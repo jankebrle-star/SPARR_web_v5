@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── FIGHTERS (profily) ────────────────────────────────────
+    match /fighters/{uid} {
+      // Čtení: kdokoli přihlášený
+      allow read: if request.auth != null;
+
+      // Zápis vlastního profilu
+      allow write: if request.auth != null && request.auth.uid == uid;
+
+      // FIX: Dovolit přihlášeným uživatelům upravit followers/following/notifications jiného uživatele
+      // Toto je potřeba pro follow systém a notifikace
+      allow update: if request.auth != null && (
+        // Vlastní profil — vše
+        request.auth.uid == uid
+        ||
+        // Cizí profil — pouze povolené fieldy (followers, notifications)
+        (
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['followers', 'notifications'])
+        )
+      );
+    }
+
+    // ── FOLLOWS (follow relace) ───────────────────────────────
+    match /follows/{followId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.followerUid == request.auth.uid;
+      allow delete: if request.auth != null &&
+        resource.data.followerUid == request.auth.uid;
+    }
+
+    // ── WALL POSTS ────────────────────────────────────────────
+    match /wallPosts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null; // saves increment
+      allow delete: if request.auth != null &&
+        resource.data.uid == request.auth.uid;
+    }
+
+    // ── SPARRING REQUESTS ─────────────────────────────────────
+    match /sparringRequests/{reqId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.fromUid ||
+        request.auth.uid == resource.data.toUid
+      );
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.toUid ||
+        request.auth.uid == resource.data.fromUid
+      );
+    }
+
+    // ── CHATS ─────────────────────────────────────────────────
+    match /chats/{chatId} {
+      // Přístup pro participanty
+      allow read, write: if request.auth != null &&
+        request.auth.uid in resource.data.participants;
+
+      // Create (první zpráva — dokument ještě neexistuje)
+      allow create: if request.auth != null;
+
+      // Zprávy v chatu
+      match /messages/{msgId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // ── MARKETPLACE ───────────────────────────────────────────
+    match /marketplace/{itemId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null; // contacts increment
+      allow delete: if request.auth != null &&
+        resource.data.uid == request.auth.uid;
+    }
+  }
+}
