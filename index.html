@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPARR — Where Fighters Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root{--orange:#f5951a;--red:#ab2e2e;--dark:#0d0d0d;--dark2:#161616;--dark3:#1f1f1f;--card:#181818;--border:rgba(255,255,255,.08);--text:#f0f0f0;--muted:rgba(240,240,240,.45);--muted2:rgba(240,240,240,.25);--grad:linear-gradient(135deg,#f5951a,#ab2e2e);--success:#22c55e;--error:#ef4444;--warning:#eab308;--info:#3b82f6;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Barlow',sans-serif;background:#0d0d0d;color:#f0f0f0;overflow-x:hidden;cursor:none;min-height:100vh;}
+.s-cursor{width:10px;height:10px;border-radius:50%;background:#f5951a;position:fixed;top:0;left:0;pointer-events:none;z-index:99999;mix-blend-mode:screen;transform:translate(-50%,-50%);}
+.s-cursor-ring{width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(245,149,26,.5);position:fixed;top:0;left:0;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.4;pointer-events:none;z-index:1;}
+/* PAGE LOADER */
+.s-page-loader{position:fixed;inset:0;background:#0d0d0d;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity .6s;}
+.s-page-loader .logo{font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:6px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.s-loader{display:inline-block;width:22px;height:22px;border:2px solid rgba(255,255,255,.1);border-top-color:#f5951a;border-radius:50%;animation:spin .8s linear infinite;}
+.s-loader-sm{width:15px;height:15px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* NAV */
+.s-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(13,13,13,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.08);transition:background .3s;}
+.s-nav.scrolled{background:rgba(13,13,13,.98);}
+.s-logo{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:4px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;cursor:none;}
+.s-nav-links{display:flex;gap:28px;align-items:center;}
+.s-nav-links a{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(240,240,240,.45);text-decoration:none;transition:color .2s;cursor:none;}
+.s-nav-links a:hover,.s-nav-links a.active{color:#f0f0f0;}
+.s-nav-right{display:flex;gap:10px;align-items:center;}
+.nav-user-avatar{width:36px;height:36px;border-radius:50%;background:var(--grad);border:2px solid rgba(245,149,26,.4);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:white;cursor:none;overflow:hidden;text-decoration:none;}
+.nav-user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+/* BUTTONS */
+.btn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:11px 28px;border-radius:6px;border:none;cursor:none;transition:all .18s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;min-height:44px;}
+.btn-ghost{background:transparent;border:1px solid rgba(245,149,26,.4);color:#f5951a;}
+.btn-ghost:hover{border-color:#f5951a;background:rgba(245,149,26,.08);}
+.btn-fire{background:var(--grad);color:white;box-shadow:0 4px 20px rgba(245,149,26,.18);}
+.btn-fire:hover{box-shadow:0 6px 28px rgba(245,149,26,.32);transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.08);color:rgba(240,240,240,.45);}
+.btn-outline:hover{color:#f0f0f0;border-color:rgba(255,255,255,.2);}
+.btn-sm{padding:8px 16px;font-size:12px;min-height:36px;}
+.btn-lg{padding:14px 40px;font-size:15px;min-height:52px;}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.45;pointer-events:none;}
+/* FORMS */
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(240,240,240,.45);margin-bottom:7px;}
+.form-input{width:100%;padding:12px 15px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:8px;color:#f0f0f0;font-family:'Barlow',sans-serif;font-size:15px;outline:none;transition:border-color .2s;min-height:44px;}
+.form-input:focus{border-color:#f5951a;box-shadow:0 0 0 3px rgba(245,149,26,.12);}
+.form-input::placeholder{color:rgba(240,240,240,.3);}
+.form-select{appearance:none;cursor:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+.form-textarea{resize:vertical;min-height:90px;line-height:1.6;}
+.form-error{font-size:12px;color:#ef4444;margin-top:5px;display:none;}
+.form-error.show{display:block;}
+.form-hint{font-size:12px;color:rgba(240,240,240,.45);margin-top:5px;}
+/* MODAL */
+.s-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;padding:20px;}
+.s-modal-overlay.open{opacity:1;pointer-events:all;}
+.s-modal{background:#161616;border:1px solid rgba(255,255,255,.08);border-radius:20px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;transform:translateY(24px) scale(.97);transition:transform .35s cubic-bezier(.4,0,.2,1);box-shadow:0 32px 80px rgba(0,0,0,.7);}
+.s-modal-overlay.open .s-modal{transform:translateY(0) scale(1);}
+.s-modal-head{padding:22px 28px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#161616;z-index:1;}
+.s-modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#f0f0f0;}
+.s-modal-close{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.06);border:none;color:rgba(240,240,240,.45);font-size:17px;cursor:none;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.s-modal-close:hover{background:rgba(255,255,255,.1);color:#f0f0f0;}
+.s-modal-body{padding:22px 28px 28px;}
+.s-modal-switch{text-align:center;margin-top:14px;font-size:14px;color:rgba(240,240,240,.45);}
+.s-modal-switch a{color:#f5951a;cursor:none;text-decoration:none;font-weight:600;}
+/* TOAST */
+.s-toast-wrap{position:fixed;bottom:28px;right:28px;z-index:9000;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.s-toast{background:rgba(20,20,20,.97);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08);border-left:3px solid #f5951a;color:#f0f0f0;padding:12px 16px;border-radius:10px;font-size:14px;max-width:360px;transform:translateX(calc(100% + 44px));opacity:0;transition:transform .38s cubic-bezier(.4,0,.2,1),opacity .38s ease;display:flex;align-items:center;gap:10px;pointer-events:all;box-shadow:0 8px 24px rgba(0,0,0,.45);}
+.s-toast.show{transform:translateX(0);opacity:1;}
+.s-toast.success{border-left-color:#22c55e;}
+.s-toast.error{border-left-color:#ef4444;}
+.s-toast.warning{border-left-color:#eab308;}
+.s-toast.info{border-left-color:#3b82f6;}
+/* TAGS, STATUS */
+.tag{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;background:rgba(245,149,26,.1);color:#f5951a;border:1px solid rgba(245,149,26,.2);display:inline-block;}
+.tag-green{background:rgba(34,197,94,.1);color:#22c55e;border-color:rgba(34,197,94,.2);}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.status-dot.online{background:#22c55e;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.5)}}
+.s-avatar{border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;color:white;flex-shrink:0;overflow:hidden;}
+.s-avatar img{width:100%;height:100%;object-fit:cover;}
+.s-avatar-md{width:44px;height:44px;font-size:16px;}
+.s-avatar-lg{width:64px;height:64px;font-size:22px;}
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.1s;}.reveal-delay-2{transition-delay:.2s;}.reveal-delay-3{transition-delay:.3s;}.reveal-delay-4{transition-delay:.4s;}
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden;background:#0d0d0d;}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:140px 80px 80px;position:relative;z-index:2;}
+.hero-tag{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#f5951a;margin-bottom:28px;display:flex;align-items:center;gap:12px;}
+.hero-tag::before{content:'';display:block;width:32px;height:1px;background:#f5951a;}
+.hero-h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,8vw,120px);line-height:.92;letter-spacing:2px;margin-bottom:32px;color:#f0f0f0;}
+.hero-h1 .grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:18px;line-height:1.7;color:rgba(240,240,240,.45);max-width:440px;margin-bottom:48px;font-weight:300;}
+.hero-actions{display:flex;gap:16px;flex-wrap:wrap;}
+.hero-stats{margin-top:80px;display:flex;gap:48px;}
+.hero-stat-n{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-stat-l{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(240,240,240,.45);margin-top:4px;}
+.hero-right{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.hero-bg-text{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:28vw;color:rgba(245,149,26,.04);letter-spacing:-10px;user-select:none;white-space:nowrap;animation:floatBg 8s ease-in-out infinite;}
+@keyframes floatBg{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.hero-glow{position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(245,149,26,.14),transparent 70%);border-radius:50%;animation:glowP 4s ease-in-out infinite;}
+@keyframes glowP{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.2);opacity:1}}
+.hero-card{position:relative;z-index:2;width:340px;background:#181818;border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 80px rgba(245,149,26,.1);animation:cardFloat 6s ease-in-out infinite;}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.hero-card-banner{height:140px;background:var(--grad);position:relative;overflow:hidden;}
+.hero-card-banner::after{content:'BOXING';position:absolute;bottom:8px;right:12px;font-family:'Bebas Neue',sans-serif;font-size:48px;color:rgba(255,255,255,.14);letter-spacing:4px;}
+.hero-card-av{width:72px;height:72px;border-radius:50%;background:var(--grad);border:3px solid #0d0d0d;position:absolute;bottom:-36px;left:24px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:24px;color:white;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.hero-card-body{padding:48px 24px 24px;}
+.hero-card-name{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px;color:#f0f0f0;}
+.hero-card-loc{font-size:13px;color:rgba(240,240,240,.45);margin-bottom:16px;}
+.hero-card-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.hero-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.hcs{background:rgba(255,255,255,.04);border-radius:8px;padding:10px 8px;text-align:center;}
+.hcs-n{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#f5951a;}
+.hcs-l{font-size:10px;color:rgba(240,240,240,.45);letter-spacing:1px;text-transform:uppercase;}
+.float-badge{position:absolute;background:#181818;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 8px 30px rgba(0,0,0,.5);white-space:nowrap;color:#f0f0f0;}
+.float-badge.b1{top:22%;right:14px;animation:fB1 5s ease-in-out infinite;}
+.float-badge.b2{bottom:28%;left:0;animation:fB2 7s ease-in-out infinite;}
+.float-badge.b3{top:62%;right:4px;animation:fB3 6s ease-in-out infinite;}
+@keyframes fB1{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes fB2{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}
+@keyframes fB3{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+/* MARQUEE */
+.marquee-wrap{overflow:hidden;background:#161616;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:14px 0;}
+.marquee-track{display:flex;animation:marqueeScroll 22s linear infinite;white-space:nowrap;}
+.marquee-item{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(240,240,240,.45);padding:0 40px;display:flex;align-items:center;gap:14px;}
+.marquee-item span{color:#f5951a;}
+@keyframes marqueeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* SECTIONS */
+.s-section{padding:100px 80px;}
+.s-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:#f5951a;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.s-label::before{content:'';display:block;width:18px;height:1.5px;background:#f5951a;}
+.s-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(38px,5vw,70px);line-height:.92;letter-spacing:2px;margin-bottom:18px;color:#f0f0f0;}
+.s-sub{font-size:17px;color:rgba(240,240,240,.45);max-width:560px;line-height:1.7;font-weight:300;}
+.text-grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:64px;border:2px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;}
+.feature-item{padding:44px 36px;background:#0d0d0d;transition:background .4s;}
+.feature-item:hover{background:#161616;}
+.feature-num{font-family:'Bebas Neue',sans-serif;font-size:64px;color:rgba(245,149,26,.1);line-height:1;margin-bottom:16px;}
+.feature-icon-wrap{width:48px;height:48px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px;}
+.feature-h{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;margin-bottom:10px;color:#f0f0f0;}
+.feature-p{font-size:14px;color:rgba(240,240,240,.45);line-height:1.7;}
+/* WALL */
+.wall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
+.post-card{background:#181818;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;transition:all .3s;}
+.post-card:hover{border-color:rgba(245,149,26,.3);transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.5);}
+.post-banner{height:120px;display:flex;align-items:flex-end;padding:14px;position:relative;overflow:hidden;}
+.post-banner.boxing{background:linear-gradient(135deg,#f5951a,#c07212);}
+.post-banner.mma{background:linear-gradient(135deg,#ab2e2e,#6b1515);}
+.post-banner.bjj{background:linear-gradient(135deg,#2c5aa0,#1a3460);}
+.post-banner.kickbox{background:linear-gradient(135deg,#ab2e2e,#f5951a);}
+.post-banner.wrestling{background:linear-gradient(135deg,#2d6a1a,#1a3a0d);}
+.post-banner::after{content:attr(data-sport);position:absolute;right:-8px;bottom:-12px;font-family:'Bebas Neue',sans-serif;font-size:56px;color:rgba(255,255,255,.12);letter-spacing:4px;}
+.post-level{background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:white;position:relative;z-index:1;}
+.post-body{padding:18px;}
+.post-user{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.post-uname{font-weight:600;font-size:14px;color:#f0f0f0;}
+.post-uloc{font-size:12px;color:rgba(240,240,240,.45);margin-top:2px;}
+.post-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;margin-bottom:7px;color:#f0f0f0;}
+.post-text{font-size:13px;color:rgba(240,240,240,.45);line-height:1.6;margin-bottom:12px;}
+.post-meta{display:flex;gap:12px;font-size:12px;color:rgba(240,240,240,.45);padding-top:12px;border-top:1px solid rgba(255,255,255,.08);}
+.post-actions{display:flex;gap:8px;margin-top:12px;}
+.post-btn{flex:1;padding:9px;border:1px solid rgba(255,255,255,.08);background:transparent;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f5951a;cursor:none;transition:all .3s;}
+.post-btn:hover{background:#f5951a;color:white;border-color:#f5951a;}
+/* LEADERBOARD */
+.lb-wrap{border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;margin-top:56px;}
+.lb-header-row,.lb-row{display:grid;grid-template-columns:60px 1fr 140px 120px;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.08);align-items:center;}
+.lb-header-row{background:rgba(255,255,255,.03);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(240,240,240,.45);}
+.lb-row:last-child{border-bottom:none;}
+.lb-row:hover{background:rgba(245,149,26,.04);}
+.lb-row.t1{background:linear-gradient(90deg,rgba(245,149,26,.08),transparent);}
+.lb-row.t2{background:linear-gradient(90deg,rgba(255,255,255,.04),transparent);}
+.lb-row.t3{background:linear-gradient(90deg,rgba(171,46,46,.08),transparent);}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:20px;color:rgba(240,240,240,.45);}
+.lb-fighter{display:flex;align-items:center;gap:12px;}
+.lb-name{font-weight:600;font-size:14px;color:#f0f0f0;}
+.lb-lv{font-size:11px;color:rgba(240,240,240,.45);margin-top:2px;}
+.lb-pts{font-family:'Bebas Neue',sans-serif;font-size:22px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+/* MARKETPLACE PREVIEW */
+.market-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:40px;}
+.market-tab{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:12px 24px;background:transparent;border:none;border-bottom:2px solid transparent;color:rgba(240,240,240,.45);cursor:none;transition:all .3s;margin-bottom:-1px;}
+.market-tab.active,.market-tab:hover{color:#f5951a;border-bottom-color:#f5951a;}
+.market-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.market-card{background:#181818;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;transition:all .3s;}
+.market-card:hover{border-color:rgba(245,149,26,.3);transform:translateY(-5px);}
+.market-img{height:150px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:42px;color:rgba(255,255,255,.25);}
+.market-body{padding:18px;}
+.market-name{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;margin-bottom:5px;color:#f0f0f0;}
+.market-desc{font-size:13px;color:rgba(240,240,240,.45);line-height:1.6;margin-bottom:10px;}
+.market-price{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#f5951a;margin-bottom:12px;}
+.market-footer{display:flex;gap:8px;}
+.market-btn{flex:1;padding:8px;border:1px solid rgba(255,255,255,.08);background:transparent;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f5951a;cursor:none;transition:all .3s;text-decoration:none;display:flex;align-items:center;justify-content:center;}
+.market-btn:hover,.market-btn.fire{background:#f5951a;color:white;border-color:#f5951a;}
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:64px;border-radius:20px;overflow:hidden;border:2px solid rgba(255,255,255,.08);}
+.pricing-card{background:#0d0d0d;padding:44px 32px;position:relative;}
+.pricing-card.featured{background:#161616;}
+.pricing-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:transparent;transition:background .4s;}
+.pricing-card.featured::before,.pricing-card:hover::before{background:var(--grad);}
+.plan-name{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;margin-bottom:6px;color:#f0f0f0;}
+.plan-desc{font-size:14px;color:rgba(240,240,240,.45);margin-bottom:24px;}
+.plan-price{font-family:'Bebas Neue',sans-serif;font-size:68px;line-height:1;color:#f5951a;margin-bottom:4px;}
+.plan-price span{font-family:'Barlow',sans-serif;font-size:17px;color:rgba(240,240,240,.45);font-weight:300;}
+.plan-billing{font-size:13px;color:rgba(240,240,240,.45);margin-bottom:32px;}
+.plan-features{list-style:none;margin-bottom:32px;}
+.plan-features li{padding:9px 0;font-size:14px;color:rgba(240,240,240,.75);display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06);}
+.plan-features li:last-child{border-bottom:none;}
+.plan-features li::before{content:'→';color:#f5951a;font-weight:700;flex-shrink:0;}
+.plan-features li.off{color:rgba(240,240,240,.35);}
+.plan-features li.off::before{content:'—';color:rgba(255,255,255,.08);}
+.plan-featured-badge{position:absolute;top:20px;right:20px;background:var(--grad);color:white;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;border-radius:4px;}
+/* CTA */
+.cta-section{padding:140px 80px;text-align:center;position:relative;overflow:hidden;background:#0d0d0d;}
+.cta-glow{position:absolute;width:800px;height:400px;background:radial-gradient(ellipse,rgba(245,149,26,.12),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);}
+/* FILTER */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+.filter-chip{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 18px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(240,240,240,.45);cursor:none;transition:all .3s;min-height:36px;}
+.filter-chip:hover,.filter-chip.active{border-color:#f5951a;color:#f5951a;background:rgba(245,149,26,.08);}
+/* FOOTER */
+.s-footer{background:#161616;border-top:1px solid rgba(255,255,255,.08);padding:52px 80px 32px;}
+.s-footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:52px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.08);}
+.s-footer-logo{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:4px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;display:block;text-decoration:none;}
+.s-footer-tagline{font-size:14px;color:rgba(240,240,240,.45);line-height:1.7;max-width:280px;}
+.s-footer-col-h{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#f5951a;margin-bottom:16px;}
+.s-footer-links{list-style:none;}
+.s-footer-links li{margin-bottom:9px;}
+.s-footer-links a{font-size:14px;color:rgba(240,240,240,.45);text-decoration:none;cursor:none;transition:color .2s;}
+.s-footer-links a:hover{color:#f0f0f0;}
+.s-footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:24px;}
+.s-footer-copy{font-size:13px;color:rgba(240,240,240,.25);}
+/* RESPONSIVE */
+@media(max-width:1100px){.hero{grid-template-columns:1fr;}.hero-right{display:none;}.hero-left{padding:120px 24px 60px;}.s-section{padding:80px 24px;}.features-grid{grid-template-columns:repeat(2,1fr);}.pricing-grid{grid-template-columns:1fr;border:none;}.pricing-card{border:1px solid rgba(255,255,255,.08);border-radius:16px;}.s-footer{padding:40px 24px 28px;}.s-footer-grid{grid-template-columns:1fr 1fr;gap:28px;}.lb-header-row,.lb-row{grid-template-columns:48px 1fr 120px;}}
+@media(max-width:640px){.features-grid{grid-template-columns:1fr;}.s-footer-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div id="sPageLoader" class="s-page-loader">
+  <div class="logo">SPARR</div>
+  <div class="s-loader"></div>
+</div>
+<div class="s-cursor" id="sCursor"></div>
+<div class="s-cursor-ring" id="sCursorRing"></div>
+<div class="s-toast-wrap" id="toastWrap"></div>
+
+<nav class="s-nav" id="mainNav">
+  <a class="s-logo" href="index.html">SPARR</a>
+  <div class="s-nav-links">
+    <a href="#features">Features</a><a href="#wall">Wall</a>
+    <a href="#leaderboard">Leaderboard</a><a href="#marketplace">Marketplace</a>
+    <a href="#pricing">Pricing</a><a href="profiles.html">Fighters</a>
+  </div>
+  <div class="s-nav-right" id="navRight">
+    <button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">Log In</button>
+    <button class="btn btn-fire btn-sm" onclick="openModal('registerModal')">Join SPARR</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag reveal">Czech Combat Sports Network</div>
+    <h1 class="hero-h1 reveal reveal-delay-1">Where<br><span class="grad">Fighters</span><br>Connect.</h1>
+    <p class="hero-sub reveal reveal-delay-2">Build your legend. Find sparring partners. Climb the Czech rankings.</p>
+    <div class="hero-actions reveal reveal-delay-3">
+      <button class="btn btn-fire btn-lg" onclick="openModal('registerModal')">Start for Free</button>
+      <a href="profiles.html" class="btn btn-ghost btn-lg">Browse Fighters</a>
+    </div>
+    <div class="hero-stats reveal reveal-delay-4">
+      <div><div class="hero-stat-n" data-count="2400">0</div><div class="hero-stat-l">Fighters</div></div>
+      <div><div class="hero-stat-n" data-count="8500">0</div><div class="hero-stat-l">Sessions</div></div>
+      <div><div class="hero-stat-n" data-count="47">0</div><div class="hero-stat-l">Gyms</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-bg-text">SPARR</div>
+    <div class="hero-glow"></div>
+    <div class="hero-card">
+      <div class="hero-card-banner"><div class="hero-card-av">MJ</div></div>
+      <div class="hero-card-body">
+        <div class="hero-card-name">Milan Janda</div>
+        <div class="hero-card-loc">📍 Praha 5 · Level 6</div>
+        <div class="hero-card-tags"><span class="tag">Boxing</span><span class="tag">Kickbox</span><span class="tag">Pro</span></div>
+        <div class="hero-card-stats">
+          <div class="hcs"><div class="hcs-n">47</div><div class="hcs-l">Sessions</div></div>
+          <div class="hcs"><div class="hcs-n">2850</div><div class="hcs-l">Points</div></div>
+          <div class="hcs"><div class="hcs-n">#1</div><div class="hcs-l">Rank</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="float-badge b1"><span class="status-dot online"></span>Online — looking to spar</div>
+    <div class="float-badge b2">🏆 New session verified</div>
+    <div class="float-badge b3">💬 3 new messages</div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item"><span>Boxing</span>Praha 5</div><div class="marquee-item"><span>MMA</span>Brno</div><div class="marquee-item"><span>BJJ</span>Ostrava</div><div class="marquee-item"><span>Kickbox</span>Plzeň</div><div class="marquee-item"><span>Wrestling</span>Praha 3</div><div class="marquee-item"><span>Muay Thai</span>Liberec</div><div class="marquee-item"><span>MMA</span>Praha 1</div><div class="marquee-item"><span>BJJ</span>Brno</div>
+    <div class="marquee-item"><span>Boxing</span>Praha 5</div><div class="marquee-item"><span>MMA</span>Brno</div><div class="marquee-item"><span>BJJ</span>Ostrava</div><div class="marquee-item"><span>Kickbox</span>Plzeň</div><div class="marquee-item"><span>Wrestling</span>Praha 3</div><div class="marquee-item"><span>Muay Thai</span>Liberec</div><div class="marquee-item"><span>MMA</span>Praha 1</div><div class="marquee-item"><span>BJJ</span>Brno</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="s-section" id="features" style="background:#161616;">
+  <div class="s-label reveal">Platform</div>
+  <h2 class="s-title reveal">Built for fighters.</h2>
+  <p class="s-sub reveal">Everything you need to grow, find partners, and build your reputation.</p>
+  <div class="features-grid">
+    <div class="feature-item reveal"><div class="feature-num">01</div><div class="feature-icon-wrap">👤</div><div class="feature-h">Fighter Profiles</div><p class="feature-p">Complete profiles with stats, verified sessions and training history.</p></div>
+    <div class="feature-item reveal reveal-delay-1"><div class="feature-num">02</div><div class="feature-icon-wrap">📋</div><div class="feature-h">Wall Feed</div><p class="feature-p">Post training opportunities and find sparring partners instantly.</p></div>
+    <div class="feature-item reveal reveal-delay-2"><div class="feature-num">03</div><div class="feature-icon-wrap">🏆</div><div class="feature-h">Leaderboard</div><p class="feature-p">Czech combat sports rankings. Earn points from confirmed sessions.</p></div>
+    <div class="feature-item reveal"><div class="feature-num">04</div><div class="feature-icon-wrap">✓</div><div class="feature-h">Verified Sessions</div><p class="feature-p">Confirm sessions with partners for mutual credibility and points.</p></div>
+    <div class="feature-item reveal reveal-delay-1"><div class="feature-num">05</div><div class="feature-icon-wrap">💬</div><div class="feature-h">Live Messaging</div><p class="feature-p">Real-time direct messages between fighters.</p></div>
+    <div class="feature-item reveal reveal-delay-2"><div class="feature-num">06</div><div class="feature-icon-wrap">🔗</div><div class="feature-h">Marketplace</div><p class="feature-p">Coaches, camps, sponsors and events — all in one place.</p></div>
+  </div>
+</section>
+
+<!-- WALL -->
+<section class="s-section" id="wall">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;flex-wrap:wrap;gap:16px;">
+    <div><div class="s-label reveal">Community</div><h2 class="s-title reveal">SPARR Wall</h2><p class="s-sub reveal">Find your next training partner.</p></div>
+    <button class="btn btn-fire reveal" id="newPostBtn">+ New Post</button>
+  </div>
+  <div class="filter-row">
+    <button class="filter-chip active" onclick="filterWall('all',this)">All Posts</button>
+    <button class="filter-chip" onclick="filterWall('boxing',this)">Boxing</button>
+    <button class="filter-chip" onclick="filterWall('mma',this)">MMA</button>
+    <button class="filter-chip" onclick="filterWall('bjj',this)">BJJ</button>
+    <button class="filter-chip" onclick="filterWall('kickbox',this)">Kickbox</button>
+  </div>
+  <div class="wall-grid" id="wallGrid"><div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(240,240,240,.45)"><div class="s-loader" style="margin:0 auto 12px"></div>Načítám…</div></div>
+</section>
+
+<!-- LEADERBOARD -->
+<section class="s-section" id="leaderboard" style="background:#161616;">
+  <div class="s-label reveal">Rankings</div>
+  <h2 class="s-title reveal">Leaderboard</h2>
+  <p class="s-sub reveal">Top fighters ranked by verified sessions and points.</p>
+  <div class="lb-wrap reveal">
+    <div class="lb-header-row"><div>#</div><div>Fighter</div><div>Sport</div><div>Points</div></div>
+    <div id="lbBody"><div style="padding:28px;text-align:center;color:rgba(240,240,240,.45)"><div class="s-loader" style="margin:0 auto 12px"></div></div></div>
+  </div>
+</section>
+
+<!-- MARKETPLACE -->
+<section class="s-section" id="marketplace">
+  <div class="s-label reveal">Marketplace</div>
+  <h2 class="s-title reveal">Explore & Connect</h2>
+  <p class="s-sub reveal">Coaches, camps, sponsors and events. <a href="marketplace.html" style="color:#f5951a;text-decoration:none;cursor:none">Zobrazit vše →</a></p>
+  <div class="market-tabs">
+    <button class="market-tab active" onclick="switchMarket('coaches',this)">Coaches</button>
+    <button class="market-tab" onclick="switchMarket('camps',this)">Camps</button>
+    <button class="market-tab" onclick="switchMarket('sponsors',this)">Sponsors</button>
+    <button class="market-tab" onclick="switchMarket('events',this)">Events</button>
+  </div>
+  <div class="market-grid" id="marketGrid"></div>
+</section>
+
+<!-- PRICING -->
+<section class="s-section" id="pricing" style="background:#161616;">
+  <div class="s-label reveal">Pricing</div>
+  <h2 class="s-title reveal">Choose your level.</h2>
+  <p class="s-sub reveal">Start free and upgrade as your career grows.</p>
+  <div class="pricing-grid">
+    <div class="pricing-card reveal">
+      <div class="plan-name">Fighter</div><div class="plan-desc">For beginners entering the platform.</div>
+      <div class="plan-price">0 <span>Kč/mo</span></div><div class="plan-billing">Free forever</div>
+      <ul class="plan-features"><li>Basic fighter profile</li><li>Wall feed access</li><li>5 posts per month</li><li>View leaderboard</li><li class="off">Verified sessions</li><li class="off">Marketplace access</li></ul>
+      <button class="btn btn-ghost btn-full" onclick="openModal('registerModal')">Get Started Free</button>
+    </div>
+    <div class="pricing-card featured reveal reveal-delay-1">
+      <div class="plan-featured-badge">Most Popular</div>
+      <div class="plan-name">Champion</div><div class="plan-desc">For serious fighters building their reputation.</div>
+      <div class="plan-price">299 <span>Kč/mo</span></div><div class="plan-billing">Cancel anytime</div>
+      <ul class="plan-features"><li>Full fighter profile</li><li>Unlimited wall posts</li><li>Verified sessions</li><li>Leaderboard ranking</li><li>Marketplace access</li><li>Auto social sharing</li></ul>
+      <button class="btn btn-fire btn-full" onclick="openModal('registerModal')">Start Free Trial</button>
+    </div>
+    <div class="pricing-card reveal reveal-delay-2">
+      <div class="plan-name">Legend</div><div class="plan-desc">For gyms, coaches and organizations.</div>
+      <div class="plan-price">799 <span>Kč/mo</span></div><div class="plan-billing">Custom annual plans</div>
+      <ul class="plan-features"><li>Everything in Champion</li><li>Gym / org profile</li><li>Team management</li><li>Analytics dashboard</li><li>Sponsor connections</li><li>Event hosting</li></ul>
+      <button class="btn btn-ghost btn-full" onclick="openModal('registerModal')">Contact Sales</button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <h2 class="s-title reveal" style="font-size:clamp(60px,8vw,110px);position:relative;z-index:1;">Ready to<br><span class="text-grad">Dominate?</span></h2>
+  <div style="display:flex;gap:16px;justify-content:center;margin-top:48px;position:relative;z-index:1;flex-wrap:wrap;">
+    <button class="btn btn-fire btn-lg" onclick="openModal('registerModal')">Create Your Profile</button>
+    <a href="profiles.html" class="btn btn-ghost btn-lg">Browse Fighters</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="s-footer">
+  <div class="s-footer-grid">
+    <div><a href="index.html" class="s-footer-logo">SPARR</a><p class="s-footer-tagline">The Czech Republic's premier combat sports platform.</p></div>
+    <div><div class="s-footer-col-h">Platform</div><ul class="s-footer-links"><li><a href="#features">Features</a></li><li><a href="#wall">Wall Feed</a></li><li><a href="#leaderboard">Leaderboard</a></li><li><a href="#marketplace">Marketplace</a></li></ul></div>
+    <div><div class="s-footer-col-h">Fighters</div><ul class="s-footer-links"><li><a href="profiles.html">Browse Profiles</a></li><li><a href="profiles.html">Boxing</a></li><li><a href="profiles.html">MMA</a></li><li><a href="profiles.html">BJJ</a></li></ul></div>
+    <div><div class="s-footer-col-h">Company</div><ul class="s-footer-links"><li><a href="#">About</a></li><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+  </div>
+  <div class="s-footer-bottom"><div class="s-footer-copy">© 2025 SPARR · All rights reserved</div></div>
+</footer>
+
+<!-- MODALS -->
+<div class="s-modal-overlay" id="loginModal" onclick="if(event.target===this)closeModal('loginModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Log In</div><button class="s-modal-close" onclick="closeModal('loginModal')">✕</button></div>
+    <div class="s-modal-body">
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="liEmail" placeholder="fighter@sparr.cz"></div>
+      <div class="form-group"><label class="form-label">Heslo</label><input type="password" class="form-input" id="liPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div id="liErr" class="form-error"></div>
+      <button class="btn btn-fire btn-full" style="padding:14px;margin-bottom:10px" id="liBtn" onclick="doLogin()">Log In</button>
+      <div style="text-align:right"><a id="forgotBtn" style="font-size:13px;color:rgba(240,240,240,.45);cursor:none;text-decoration:underline">Zapomenuté heslo?</a></div>
+      <div class="s-modal-switch">Nemáš účet? <a onclick="switchModal('loginModal','registerModal')">Zaregistruj se zdarma</a></div>
+    </div>
+  </div>
+</div>
+
+<div class="s-modal-overlay" id="registerModal" onclick="if(event.target===this)closeModal('registerModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Join SPARR</div><button class="s-modal-close" onclick="closeModal('registerModal')">✕</button></div>
+    <div class="s-modal-body">
+      <div class="form-group"><label class="form-label">Jméno a příjmení *</label><input type="text" class="form-input" id="riName" placeholder="Tvoje jméno"></div>
+      <div class="form-group"><label class="form-label">Email *</label><input type="email" class="form-input" id="riEmail" placeholder="fighter@sparr.cz"></div>
+      <div class="form-group"><label class="form-label">Město *</label><input type="text" class="form-input" id="riCity" placeholder="Praha, Brno…"></div>
+      <div class="form-group"><label class="form-label">Hlavní sport</label><select class="form-input form-select" id="riSport"><option>Boxing</option><option>MMA</option><option>BJJ</option><option>Kickbox</option><option>Wrestling</option><option>Muay Thai</option></select></div>
+      <div class="form-group"><label class="form-label">Roky zkušeností</label><input type="number" class="form-input" id="riYears" placeholder="např. 3" min="0" max="50"><div class="form-hint">Jak dlouho se věnuješ bojovým sportům</div></div>
+      <div class="form-group"><label class="form-label">Heslo *</label><input type="password" class="form-input" id="riPass" placeholder="Min. 6 znaků"></div>
+      <div id="riErr" class="form-error"></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="riBtn" onclick="doRegister()">Vytvořit profil</button>
+      <div class="s-modal-switch">Už máš účet? <a onclick="switchModal('registerModal','loginModal')">Přihlásit se</a></div>
+    </div>
+  </div>
+</div>
+
+<div class="s-modal-overlay" id="createPostModal" onclick="if(event.target===this)closeModal('createPostModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Nový Post</div><button class="s-modal-close" onclick="closeModal('createPostModal')">✕</button></div>
+    <div class="s-modal-body">
+      <div class="form-group"><label class="form-label">Nadpis *</label><input type="text" class="form-input" id="pTitle" placeholder="Co hledáš?"></div>
+      <div class="form-group"><label class="form-label">Sport</label><select class="form-input form-select" id="pSport"><option value="boxing">Boxing</option><option value="mma">MMA</option><option value="bjj">BJJ</option><option value="kickbox">Kickbox</option><option value="wrestling">Wrestling</option></select></div>
+      <div class="form-group"><label class="form-label">Typ</label><select class="form-input form-select" id="pType"><option>Sparring</option><option>Trénink</option><option>Koučink</option><option>Začátečník</option></select></div>
+      <div class="form-group"><label class="form-label">Popis *</label><textarea class="form-input form-textarea" id="pDesc" placeholder="Popiš co hledáš…"></textarea></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="pBtn" onclick="doCreatePost()">Publikovat</button>
+    </div>
+  </div>
+</div>
+
+<div class="s-modal-overlay" id="sparModal" onclick="if(event.target===this)closeModal('sparModal')">
+  <div class="s-modal">
+    <div class="s-modal-head"><div class="s-modal-title">Request Sparring</div><button class="s-modal-close" onclick="closeModal('sparModal')">✕</button></div>
+    <div class="s-modal-body">
+      <p style="font-size:14px;color:rgba(240,240,240,.45);margin-bottom:16px">Žádost pro <strong id="sparTargetName" style="color:#f0f0f0">—</strong></p>
+      <div class="form-group"><label class="form-label">Zpráva</label><textarea class="form-input form-textarea" id="sparMsg" placeholder="Představ se a navrhni čas…"></textarea></div>
+      <button class="btn btn-fire btn-full" style="padding:14px" id="sparSendBtn" onclick="doSendSpar()">Odeslat žádost 🥊</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE + APP SCRIPT -->
+<script type="module">
+// ── Firebase imports ──────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyAhU5DPvVC88jeuQyKrA1jdyRsx3ub8wBY",
+  authDomain:"sparr-ae946.firebaseapp.com",
+  projectId:"sparr-ae946",
+  storageBucket:"sparr-ae946.firebasestorage.app",
+  messagingSenderId:"463453691804",
+  appId:"1:463453691804:web:66854c39094693669f7259"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── EmailJS ───────────────────────────────────────────────
+window.addEventListener('load', () => {
+  if (window.emailjs) window.emailjs.init("HAijP0Nkt2ktswUcA");
+});
+function sendEmail(tpl, params) {
+  if (!window.emailjs) return;
+  window.emailjs.send("service_ytrykjs", tpl, params).catch(e => console.warn("email:", e?.text||e));
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+window.showToast = function(msg, type) {
+  type = type || 'info';
+  var w = document.getElementById('toastWrap');
+  if (!w) return;
+  var icons = {success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  var t = document.createElement('div');
+  t.className = 's-toast ' + type;
+  t.innerHTML = '<span style="font-size:15px;flex-shrink:0">'+(icons[type]||'ℹ️')+'</span><span style="flex:1">'+msg+'</span><button style="background:none;border:none;color:rgba(240,240,240,.4);cursor:none;font-size:16px;padding:0 4px;margin-left:6px" onclick="this.parentElement.classList.remove(\'show\');setTimeout(()=>this.parentElement.remove(),420)">✕</button>';
+  w.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => { if(t.parentElement) t.remove(); }, 420); }, 5000);
+};
+
+// ── MODAL ─────────────────────────────────────────────────
+window.openModal  = id => { const m=document.getElementById(id); if(m){m.classList.add('open');document.body.style.overflow='hidden';} };
+window.closeModal = id => { const m=document.getElementById(id); if(m){m.classList.remove('open');document.body.style.overflow='';} };
+window.switchModal = (a,b) => { closeModal(a); setTimeout(()=>openModal(b),300); };
+document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.s-modal-overlay.open').forEach(m=>m.classList.remove('open')); });
+
+// ── CURSOR ────────────────────────────────────────────────
+const cur=document.getElementById('sCursor'), ring=document.getElementById('sCursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; cur.style.transform=`translate(${mx}px,${my}px)`; });
+(function a(){ rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.transform=`translate(${rx}px,${ry}px)`; requestAnimationFrame(a); })();
+
+// ── NAV + REVEAL ──────────────────────────────────────────
+window.addEventListener('scroll', ()=>document.getElementById('mainNav').classList.toggle('scrolled',scrollY>50));
+const ro = new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+setTimeout(()=>document.querySelectorAll('.hero .reveal, section:first-of-type .reveal').forEach(el=>el.classList.add('visible')),200);
+
+// ── COUNT UP ──────────────────────────────────────────────
+function countUp(el,n){let c=0;const s=n/(1800/16);const t=setInterval(()=>{c=Math.min(c+s,n);el.textContent=Math.floor(c).toLocaleString();if(c>=n)clearInterval(t);},16);}
+setTimeout(()=>document.querySelectorAll('[data-count]').forEach(el=>countUp(el,+el.dataset.count)),700);
+
+// ── PAGE LOADER — odstraní se hned po načtení ─────────────
+// Nezávislé na Firebase — loader zmizí vždy
+function removePL(){const pl=document.getElementById('sPageLoader');if(pl){pl.style.opacity='0';setTimeout(()=>pl.remove(),500);}}
+if(document.readyState==='complete'){removePL();}else{window.addEventListener('load',removePL);}
+// Failsafe: pokud za 3s není pryč, odstraň
+setTimeout(removePL, 3000);
+
+// ── HELPERS ───────────────────────────────────────────────
+function initials(n=''){return(n||'').trim().split(/\s+/).map(x=>x[0]||'').join('').slice(0,2).toUpperCase()||'?';}
+function timeAgo(ts){if(!ts)return'—';const d=Date.now()-ts;if(d<60000)return'právě teď';if(d<3600000)return`${Math.floor(d/60000)}m`;if(d<86400000)return`${Math.floor(d/3600000)}h`;return`${Math.floor(d/86400000)}d`;}
+function esc(t=''){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');}
+function getP(uid){return getDoc(doc(db,'fighters',uid)).then(s=>s.exists()?{id:s.id,...s.data()}:null);}
+function saveP(uid,d){return setDoc(doc(db,'fighters',uid),d,{merge:true});}
+
+// ── AUTH STATE ────────────────────────────────────────────
+let _user=null, _profile=null, _sparTarget=null, _wallFilter='all';
+
+onAuthStateChanged(auth, async user=>{
+  _user=user;
+  _profile = user ? await getP(user.uid).catch(()=>null) : null;
+  const right=document.getElementById('navRight');
+  if(user){
+    const av=_profile?.photoURL?`<img src="${_profile.photoURL}" alt="">`:initials(_profile?.name||'?');
+    right.innerHTML=`<a href="messages.html" class="btn btn-outline btn-sm">💬 Zprávy</a><a href="my-profile.html" class="nav-user-avatar">${av}</a><button class="btn btn-outline btn-sm" id="lob">Odhlásit</button>`;
+    document.getElementById('lob').addEventListener('click',()=>signOut(auth).then(()=>location.href='index.html'));
+  } else {
+    right.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">Log In</button><button class="btn btn-fire btn-sm" onclick="openModal('registerModal')">Join SPARR</button>`;
+  }
+});
+
+// ── LOGIN ─────────────────────────────────────────────────
+window.doLogin = async()=>{
+  const email=document.getElementById('liEmail').value.trim(), pass=document.getElementById('liPass').value;
+  const err=document.getElementById('liErr'), btn=document.getElementById('liBtn');
+  err.classList.remove('show');
+  if(!email||!pass){err.textContent='Vyplň všechna pole.';err.classList.add('show');return;}
+  btn.disabled=true;btn.innerHTML='<span class="s-loader s-loader-sm"></span>';
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+    closeModal('loginModal');showToast('Vítej zpět! 🥊','success');
+  }catch(e){
+    const m={'auth/wrong-password':'Špatné heslo.','auth/user-not-found':'Účet neexistuje.','auth/invalid-credential':'Špatný email nebo heslo.'};
+    err.textContent=m[e.code]||'Přihlášení selhalo.';err.classList.add('show');
+  }
+  btn.disabled=false;btn.textContent='Log In';
+};
+document.getElementById('forgotBtn').addEventListener('click',async()=>{
+  const email=document.getElementById('liEmail').value.trim();
+  if(!email){showToast('Zadej email.','warning');return;}
+  try{await sendPasswordResetEmail(auth,email);showToast('Odkaz odeslán!','success');}catch{showToast('Nepodařilo se.','error');}
+});
+
+// ── REGISTER ──────────────────────────────────────────────
+window.doRegister = async()=>{
+  const name=document.getElementById('riName').value.trim(), email=document.getElementById('riEmail').value.trim();
+  const city=document.getElementById('riCity').value.trim(), sport=document.getElementById('riSport').value;
+  const years=document.getElementById('riYears').value, pass=document.getElementById('riPass').value;
+  const err=document.getElementById('riErr'), btn=document.getElementById('riBtn');
+  err.classList.remove('show');
+  if(!name||!email||!city||!pass){err.textContent='Vyplň povinná pole.';err.classList.add('show');return;}
+  if(pass.length<6){err.textContent='Heslo musí mít min. 6 znaků.';err.classList.add('show');return;}
+  btn.disabled=true;btn.innerHTML='<span class="s-loader s-loader-sm"></span> Vytvářím…';
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await updateProfile(cred.user,{displayName:name});
+    await saveP(cred.user.uid,{uid:cred.user.uid,email,name,city,sport,level:'Beginner',yearsActive:parseInt(years)||0,bio:'',weight:'',instagram:'',secondary:[],openToSpar:true,teachBeginners:false,photoURL:'',points:0,sessions:0,wins:0,savedPosts:[],followers:[],following:[],notifications:[],createdAt:Date.now()});
+    sendEmail('Welcome',{to_name:name,to_email:email,app_url:'https://jankebrle-star.github.io/SPARR_web_v5'});
+    closeModal('registerModal');showToast(`Vítej, ${name}! 🥊 Zkontroluj email.`,'success');
+    setTimeout(()=>location.href='my-profile.html',1800);
+  }catch(e){
+    const m={'auth/email-already-in-use':'Email je již zaregistrován.','auth/weak-password':'Heslo je příliš slabé.'};
+    err.textContent=m[e.code]||'Registrace selhala.';err.classList.add('show');
+  }
+  btn.disabled=false;btn.textContent='Vytvořit profil';
+};
+
+// ── WALL ──────────────────────────────────────────────────
+const wallDemo=[
+  {authorName:"Milan Janda",city:"Praha 5",sport:"boxing",level:"LVL 6",title:"Sparring partner – Boxing",text:"Hledám partnera, střední váha, 5+ let zkušeností.",type:"Sparring",replies:12,createdAt:Date.now()-3600000,uid:"d1",email:""},
+  {authorName:"Petr Kovár",city:"Brno",sport:"mma",level:"LVL 5",title:"MMA Training Session",text:"Trénujeme 2x týdně. Středně pokročilí.",type:"Trénink",replies:8,createdAt:Date.now()-86400000,uid:"d2",email:""},
+  {authorName:"Anna Vavříková",city:"Ostrava",sport:"bjj",level:"LVL 4",title:"BJJ pro ženy",text:"Ženský BJJ trénink. Všechny úrovně vítány.",type:"Sparring",replies:5,createdAt:Date.now()-172800000,uid:"d3",email:""},
+  {authorName:"Karel Novák",city:"Plzeň",sport:"kickbox",level:"LVL 3",title:"Kickbox Kondičák",text:"3x týdně, lapa práce a techniky.",type:"Trénink",replies:7,createdAt:Date.now()-259200000,uid:"d4",email:""},
+  {authorName:"Tomáš Musil",city:"Praha 3",sport:"mma",level:"LVL 3",title:"Wrestling pro nováčky",text:"Začínáme nový program.",type:"Začátečník",replies:15,createdAt:Date.now()-345600000,uid:"d5",email:""},
+  {authorName:"David Majer",city:"Liberec",sport:"boxing",level:"LVL 4",title:"Kondičák + Lapa 3x",text:"Pro bojovníky všech sportů.",type:"Trénink",replies:9,createdAt:Date.now()-432000000,uid:"d6",email:""},
+];
+
+async function loadWall(){
+  const g=document.getElementById('wallGrid');
+  g.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(240,240,240,.45)"><div class="s-loader" style="margin:0 auto"></div></div>`;
+  let posts=[];
+  try{
+    const c=[orderBy("createdAt","desc")];
+    if(_wallFilter!=='all')c.unshift(where("sport","==",$wallFilter));
+    const s=await getDocs(query(collection(db,"wallPosts"),...c));
+    posts=s.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.warn("wall:",e);}
+  if(!posts.length) posts=_wallFilter==='all'?wallDemo:wallDemo.filter(p=>p.sport===_wallFilter);
+  if(!posts.length){g.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(240,240,240,.45)">Žádné posty.</div>`;return;}
+  g.innerHTML=posts.slice(0,9).map(p=>`
+    <div class="post-card">
+      <div class="post-banner ${p.sport||'boxing'}" data-sport="${(p.sport||'boxing').toUpperCase()}">
+        <div class="post-level">${p.level||'—'}</div>
+      </div>
+      <div class="post-body">
+        <div class="post-user"><div class="s-avatar s-avatar-md">${initials(p.authorName)}</div><div><div class="post-uname">${esc(p.authorName)}</div><div class="post-uloc">📍 ${esc(p.city||'—')}</div></div></div>
+        <div class="post-title">${esc(p.title)}</div>
+        <div class="post-text">${esc(p.text)}</div>
+        <div class="post-meta"><span>🥊 ${esc(p.type||'—')}</span><span>⏰ ${timeAgo(p.createdAt)}</span><span>💬 ${p.replies||0}</span></div>
+        <div class="post-actions">
+          <button class="post-btn" onclick="openSparModal('${p.uid}','${esc(p.authorName)}','${p.email||''}')">Respond</button>
+          <button class="post-btn" onclick="doSavePost('${p.id||''}',this)">🔖 Save</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.filterWall=(f,btn)=>{
+  _wallFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadWall();
+};
+
+document.getElementById('newPostBtn').addEventListener('click',()=>{
+  if(_user)openModal('createPostModal');
+  else{openModal('loginModal');showToast('Nejdřív se přihlas.','info');}
+});
+
+window.doCreatePost=async()=>{
+  if(!_user){closeModal('createPostModal');openModal('loginModal');return;}
+  const title=document.getElementById('pTitle').value.trim(), desc=document.getElementById('pDesc').value.trim();
+  if(!title||!desc){showToast('Vyplň nadpis a popis.','warning');return;}
+  const btn=document.getElementById('pBtn');
+  btn.disabled=true;btn.innerHTML='<span class="s-loader s-loader-sm"></span>';
+  try{
+    await addDoc(collection(db,"wallPosts"),{uid:_user.uid,authorName:_profile?.name||'Fighter',title,sport:document.getElementById('pSport').value,type:document.getElementById('pType').value,text:desc,city:_profile?.city||'',level:'LVL 1',replies:0,saves:0,createdAt:Date.now()});
+    closeModal('createPostModal');showToast('Post publikován!','success');
+    document.getElementById('pTitle').value='';document.getElementById('pDesc').value='';
+    loadWall();
+  }catch(e){showToast('Chyba: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='Publikovat';
+};
+
+window.doSavePost=async(id,btn)=>{
+  if(!_user){openModal('loginModal');showToast('Nejdřív se přihlas.','info');return;}
+  if(!id){showToast('Demo post nelze uložit.','info');return;}
+  const orig=btn.textContent; btn.disabled=true; btn.textContent='…';
+  try{
+    await updateDoc(doc(db,'fighters',_user.uid),{savedPosts:arrayUnion(id)});
+    btn.textContent='✅ Uloženo';btn.style.color='#22c55e';showToast('Uloženo!','success');
+  }catch{btn.textContent=orig;showToast('Chyba ukládání.','error');}
+  btn.disabled=false;
+};
+
+// ── SPARRING ──────────────────────────────────────────────
+window.openSparModal=(uid,name,email)=>{
+  if(!_user){openModal('loginModal');showToast('Nejdřív se přihlas.','info');return;}
+  _sparTarget={uid,name,email};
+  document.getElementById('sparTargetName').textContent=name;
+  document.getElementById('sparMsg').value=`Ahoj ${name}! Rád/a bych si s tebou zastřílel/a. Jsem ${_profile?.level||'fighter'} z ${_profile?.city||'ČR'}.`;
+  openModal('sparModal');
+};
+
+window.doSendSpar=async()=>{
+  if(!_sparTarget||!_user)return;
+  const msg=document.getElementById('sparMsg').value.trim();
+  const btn=document.getElementById('sparSendBtn');
+  btn.disabled=true;btn.innerHTML='<span class="s-loader s-loader-sm"></span>';
+  try{
+    await addDoc(collection(db,"sparringRequests"),{fromUid:_user.uid,fromName:_profile?.name||'Fighter',toUid:_sparTarget.uid,toName:_sparTarget.name,toEmail:_sparTarget.email||'',message:msg,status:'pending',createdAt:Date.now()});
+    // Notifikace
+    if(_sparTarget.uid&&!_sparTarget.uid.startsWith('d')){
+      updateDoc(doc(db,'fighters',_sparTarget.uid),{notifications:arrayUnion({type:'sparring',fromUid:_user.uid,fromName:_profile?.name,text:`${_profile?.name} tě zve na sparring`,link:'my-profile.html',ts:Date.now(),read:false,id:`${Date.now()}`})}).catch(()=>{});
+      if(_sparTarget.email) sendEmail('Auto-Reply',{to_name:_sparTarget.name,to_email:_sparTarget.email,from_name:_profile?.name||'Fighter',message:msg,app_url:'https://jankebrle-star.github.io/SPARR_web_v5'});
+    }
+    closeModal('sparModal');showToast(`Žádost odeslána ${_sparTarget.name}! 🥊`,'success');
+  }catch(e){showToast('Odeslání selhalo: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='Odeslat žádost 🥊';
+};
+
+// ── LEADERBOARD ───────────────────────────────────────────
+const lbDemo=[
+  {name:"Milan Janda",sport:"Boxing",city:"Praha 5",points:2850,sessions:47,level:6,uid:"d1"},
+  {name:"Petr Kovár",sport:"MMA",city:"Brno",points:2620,sessions:43,level:5,uid:"d2"},
+  {name:"Anna Vavříková",sport:"Kickbox",city:"Ostrava",points:2480,sessions:41,level:5,uid:"d3"},
+  {name:"Roman Novotný",sport:"BJJ",city:"Plzeň",points:2340,sessions:39,level:4,uid:"d4"},
+  {name:"David Majer",sport:"Boxing",city:"Liberec",points:2210,sessions:37,level:4,uid:"d5"},
+];
+async function loadLB(){
+  let data=[];
+  try{
+    const s=await getDocs(query(collection(db,"fighters"),orderBy("points","desc"),limit(10)));
+    data=s.docs.map((d,i)=>({...d.data(),uid:d.id,rank:i+1}));
+  }catch{}
+  if(!data.length)data=lbDemo.map((f,i)=>({...f,rank:i+1}));
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('lbBody').innerHTML=data.map((f,i)=>`
+    <div class="lb-row ${i<3?'t'+(i+1):''}">
+      <div class="lb-rank">${medals[i]||''}${f.rank}</div>
+      <div class="lb-fighter"><div class="s-avatar s-avatar-md">${initials(f.name)}</div><div><div class="lb-name"><a href="profile.html?uid=${f.uid}" style="color:inherit;text-decoration:none;cursor:none">${esc(f.name)}</a></div><div class="lb-lv">Level ${f.level||'?'}</div></div></div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:rgba(240,240,240,.45)">${esc(f.sport||'—')}</div>
+      <div class="lb-pts">${(f.points||0).toLocaleString()}</div>
+    </div>`).join('');
+}
+
+// ── MARKETPLACE PREVIEW ───────────────────────────────────
+const mPreview={
+  coaches:[{name:"Jan Fitness Coach",desc:"Profesionální příprava pro bojovníky",price:"500 Kč/hod"},{name:"Marie Nutrition",desc:"Plánování stravy pro sportovce",price:"400 Kč/konzultace"},{name:"Pavel Mind Coach",desc:"Mentální příprava a psychologie",price:"600 Kč/sezení"}],
+  camps:[{name:"Czech Camp Prague",desc:"Letní tábor MMA a Boxing",price:"5 000 Kč/týden"},{name:"Plzen Boxing Academy",desc:"Celoroční box program",price:"2 000 Kč/měsíc"},{name:"BJJ Masters Camp",desc:"Intenzivní BJJ příprava",price:"4 500 Kč/týden"}],
+  sponsors:[{name:"Fight Gear Store",desc:"Vybavení pro bojovníky",price:"Slevy až 40%"},{name:"Nutrition Pro",desc:"Suplementy a výživa",price:"Speciální ceny"},{name:"Travel Agency",desc:"Cestování na turnaje",price:"Slevy pro členy"}],
+  events:[{name:"SPARR Championship 2025",desc:"Velký turnaj všech sportů",price:"500 Kč/startovné"},{name:"Regional Tournament",desc:"Regionální mistrovství",price:"300 Kč/startovné"},{name:"Open Matt Weekly",desc:"Každý čtvrtek 18:00",price:"100 Kč/vstupné"}]
+};
+let curMTab='coaches';
+window.switchMarket=(tab,btn)=>{curMTab=tab;document.querySelectorAll('.market-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderMarket();};
+function renderMarket(){
+  document.getElementById('marketGrid').innerHTML=mPreview[curMTab].map(m=>`
+    <div class="market-card">
+      <div class="market-img">${m.name.slice(0,4).toUpperCase()}</div>
+      <div class="market-body">
+        <div class="market-name">${esc(m.name)}</div>
+        <div class="market-desc">${esc(m.desc)}</div>
+        <div class="market-price">${esc(m.price)}</div>
+        <div class="market-footer">
+          <a href="marketplace.html" class="market-btn">Detail</a>
+          <a href="marketplace.html" class="market-btn fire">Kontakt</a>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────
+loadWall();
+loadLB();
+renderMarket();
+</script>
+</body>
+</html>
